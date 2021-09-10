@@ -9,5 +9,20 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.example.wifihot.fragment.MainFragment"
-        android:label="MainFragment" />
+        android:label="MainFragment" >
+        <action
+            android:id="@+id/action_mainFragment_to_serverFragment"
+            app:destination="@id/serverFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_clientFragment"
+            app:destination="@id/clientFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/clientFragment"
+        android:name="com.example.wifihot.fragment.ClientFragment"
+        android:label="ClientFragment" />
+    <fragment
+        android:id="@+id/serverFragment"
+        android:name="com.example.wifihot.fragment.ServerFragment"
+        android:label="ServerFragment" />
 </navigation>
