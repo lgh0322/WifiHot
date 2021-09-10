@@ -20,7 +20,7 @@ import java.net.Socket
 
 class ClientFragment:Fragment() {
     lateinit var binding: FragmentClientBinding
-    var wifiManager: WifiManager? = null
+    lateinit var wifiManager: WifiManager
     var wifiState = 0
     private val socket: Socket? = null
 
@@ -100,6 +100,9 @@ class ClientFragment:Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        wifiManager =requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+        requireContext().registerReceiver(wifiBroadcast,makeGattUpdateIntentFilter())
         binding= FragmentClientBinding.inflate(inflater,container,false)
         return binding.root
     }
