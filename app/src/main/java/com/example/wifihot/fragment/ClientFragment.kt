@@ -15,6 +15,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.wifihot.BleServer
+import com.example.wifihot.BleServer.socket
 import com.example.wifihot.databinding.FragmentClientBinding
 import com.example.wifihot.databinding.FragmentMainBinding
 import kotlinx.coroutines.launch
@@ -26,7 +27,7 @@ class ClientFragment:Fragment() {
     lateinit var binding: FragmentClientBinding
     lateinit var wifiManager: WifiManager
     var wifiState = 0
-    lateinit var  socket :Socket
+
 
     private fun isWifiConnected(): Boolean {
         val connectivityManager =
@@ -131,7 +132,16 @@ class ClientFragment:Fragment() {
         if (gate != null) {
             BleServer.dataScope.launch {
                 try {
-                    socket = Socket(gate, 80)
+                    val buffer = ByteArray(64)
+                    socket = Socket(gate, 9999)
+                    val input= socket.getInputStream()
+                    while(true){
+                        val bytes=input.read(buffer)
+                        if(bytes>0){
+                            Log.e("fuckNet", String(buffer.copyOfRange(0,bytes)))
+                        }
+                    }
+
                 } catch (e: UnknownHostException) {
                     println("请检查端口号是否为服务器IP")
                     e.printStackTrace()
