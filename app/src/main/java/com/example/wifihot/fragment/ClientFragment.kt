@@ -16,13 +16,15 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.wifihot.databinding.FragmentClientBinding
 import com.example.wifihot.databinding.FragmentMainBinding
+import java.io.IOException
 import java.net.Socket
+import java.net.UnknownHostException
 
 class ClientFragment:Fragment() {
     lateinit var binding: FragmentClientBinding
     lateinit var wifiManager: WifiManager
     var wifiState = 0
-    private val socket: Socket? = null
+    lateinit var  socket :Socket
 
     private fun isWifiConnected(): Boolean {
         val connectivityManager =
@@ -94,6 +96,26 @@ class ClientFragment:Fragment() {
         return filter
     }
 
+    fun initClientSocket() {
+        try {
+
+        } catch (e: UnknownHostException) {
+            // TODO Auto-generated catch block
+            println("请检查端口号是否为服务器IP")
+            e.printStackTrace()
+        } catch (e: IOException) {
+            // TODO Auto-generated catch block
+            println("服务器未开启")
+            e.printStackTrace()
+        }
+        // output.println("this is the message from client");
+    }
+
+
+    private fun intToIp(paramInt: Int): String? {
+        return ((paramInt.and(255)).toString() + "." + (paramInt.shr(8).and(255)) + "." + (paramInt.shr(16).and(255)) + "."
+                + (paramInt.shr(24).and(255)))
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -101,6 +123,12 @@ class ClientFragment:Fragment() {
         savedInstanceState: Bundle?
     ): View {
         wifiManager =requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
+//        socket = Socket("192.168.43.1", 9999)
+
+        val gate=intToIp(wifiManager.dhcpInfo.gateway)
+        if (gate != null) {
+            Log.e("fuck",gate)
+        }
 
         requireContext().registerReceiver(wifiBroadcast,makeGattUpdateIntentFilter())
         binding= FragmentClientBinding.inflate(inflater,container,false)
