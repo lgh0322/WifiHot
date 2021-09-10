@@ -18,7 +18,7 @@ class MainFragment:Fragment() {
     ): View? {
         binding= FragmentMainBinding.inflate(inflater,container,false)
 
-        binding.client.setOnClickListener { 
+        binding.client.setOnClickListener {
             findNavController().navigate(R.id.action_mainFragment_to_clientFragment)
         }
 
