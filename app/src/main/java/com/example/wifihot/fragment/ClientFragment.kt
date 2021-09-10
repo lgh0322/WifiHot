@@ -14,8 +14,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.wifihot.BleServer
 import com.example.wifihot.databinding.FragmentClientBinding
 import com.example.wifihot.databinding.FragmentMainBinding
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.Socket
 import java.net.UnknownHostException
@@ -123,11 +125,22 @@ class ClientFragment:Fragment() {
         savedInstanceState: Bundle?
     ): View {
         wifiManager =requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
-//        socket = Socket("192.168.43.1", 9999)
+
 
         val gate=intToIp(wifiManager.dhcpInfo.gateway)
         if (gate != null) {
-            Log.e("fuck",gate)
+            BleServer.dataScope.launch {
+                try {
+                    socket = Socket(gate, 80)
+                } catch (e: UnknownHostException) {
+                    println("请检查端口号是否为服务器IP")
+                    e.printStackTrace()
+                } catch (e: IOException) {
+                    println("服务器未开启")
+                    e.printStackTrace()
+                }
+            }
+
         }
 
         requireContext().registerReceiver(wifiBroadcast,makeGattUpdateIntentFilter())
