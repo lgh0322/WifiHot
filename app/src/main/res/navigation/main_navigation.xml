@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/login_navigation"
+    app:startDestination="@+id/main">
+    <fragment
+        android:id="@+id/main"
+        android:name="com.viatom.littlePu.fragment.MainFragment">
+        <action
+            android:id="@+id/action_ecg_enter"
+            app:destination="@id/ecg_enter"
+            app:popUpTo="@id/ecg_enter"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_main_to_loginInput"
+            app:destination="@id/loginInput"
+            app:popUpTo="@id/loginInput"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_main_to_pr1"
+            app:destination="@id/pr1" />
+        <action
+            android:id="@+id/action_main_to_reportFragment"
+            app:destination="@id/reportFragment" />
+        <action
+            android:id="@+id/action_main_to_doctorFragment"
+            app:destination="@id/doctorFragment" />
+        <action
+            android:id="@+id/action_main_to_about"
+            app:destination="@id/about"
+            app:popUpTo="@id/about"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_main_to_prMeasureFragment"
+            app:destination="@id/prMeasureFragment"
+            app:popUpTo="@id/prMeasureFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_main_to_userInfo"
+            app:destination="@id/userInfo"
+            app:popUpTo="@id/userInfo"
+            app:popUpToInclusive="true" />
+        <deepLink
+            android:id="@+id/deepLink5"
+            android:autoVerify="true"
+            app:uri="viatom://main" />
+        <action
+            android:id="@+id/action_main_to_userMemberFragment"
+            app:destination="@id/userMemberFragment" />
+        <action
+            android:id="@+id/action_main_to_memberInfoFragment"
+            app:destination="@id/memberInfoFragment" />
+        <action
+            android:id="@+id/action_main_to_newMemberInfoFragment"
+            app:destination="@id/newMemberInfoFragment" />
+        <action
+            android:id="@+id/action_main_to_thermoFragment"
+            app:destination="@id/thermoFragment" />
+        <action
+            android:id="@+id/action_main_to_oxyFragment"
+            app:destination="@id/oxyFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/doctorFragment"
+        android:name="com.viatom.littlePu.fragment.DoctorAnalysisFragment"
+        android:label="DoctorFragment">
+
+        <action
+            android:id="@+id/action_doctorFragment_to_h5Fragment"
+            app:destination="@id/h5Fragment"
+            app:popUpTo="@id/h5Fragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_doctorFragment_to_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_doctorFragment_to_ecgAiReportFragment"
+            app:destination="@id/ecgAiReportFragment" />
+        <deepLink
+            android:id="@+id/deepLink8"
+            app:uri="viatom://doctor" />
+        <action
+            android:id="@+id/action_doctorFragment_to_reportFragment"
+            app:destination="@id/reportFragment"
+            app:popUpTo="@id/reportFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/ecg_enter"
+        android:name="com.viatom.littlePu.fragment.EcgMeasureFragment">
+        <action
+            android:id="@+id/action_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_ecg_enter_to_ecgDeviceSettingFragment"
+            app:destination="@id/ecgDeviceSettingFragment"
+            app:popUpTo="@id/ecgDeviceSettingFragment"
+            app:popUpToInclusive="true" />
+        <deepLink
+            android:id="@+id/deepLink2"
+            android:autoVerify="true"
+            app:uri="viatom://ecg/measure" />
+        <action
+            android:id="@+id/action_ecg_enter_to_doctorFragment"
+            app:destination="@id/doctorFragment"
+            app:popUpTo="@id/doctorFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/ecgDeviceSettingFragment"
+        android:name="com.viatom.littlePu.fragment.EcgSettingFragment"
+        android:label="EcgDeviceSettingFragment">
+        <action
+            android:id="@+id/action_ecgDeviceSettingFragment_to_ecg_enter"
+            app:destination="@id/ecg_enter"
+            app:popUpTo="@id/ecg_enter"
+            app:popUpToInclusive="true" />
+        <deepLink
+            android:id="@+id/deepLink13"
+            app:uri="viatom://ecg/setting" />
+    </fragment>
+    <fragment
+        android:id="@+id/loginInput"
+        android:name="com.viatom.littlePu.fragment.LoginFragment">
+        <action
+            android:id="@+id/action_user_info"
+            app:destination="@id/userInfo"
+            app:popUpTo="@id/userInfo"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_loginInput_to_main2"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_loginInput_to_newUserInfoFragment"
+            app:destination="@id/newUserInfoFragment"
+            app:popUpTo="@id/newUserInfoFragment"
+            app:popUpToInclusive="true" />
+        <deepLink
+            android:id="@+id/deepLink6"
+            app:uri="viatom://login/input" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/userInfo"
+        android:name="com.viatom.littlePu.fragment.UserInfoFragment">
+        <action
+            android:id="@+id/action_loginInput_to_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_userInfo_to_about"
+            app:destination="@id/about"
+            app:popUpTo="@id/about"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/about"
+        android:name="com.viatom.littlePu.fragment.UserCenterFragment">
+        <action
+            android:id="@+id/action_logout"
+            app:destination="@id/loginInput"
+            app:popUpTo="@id/loginInput"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_about_to_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_about_to_userInfo"
+            app:destination="@id/userInfo"
+            app:popUpTo="@id/userInfo"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_about_to_loginInput"
+            app:destination="@id/loginInput"
+            app:popUpTo="@id/loginInput"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_about_to_userFeedbackFragment"
+            app:destination="@id/userFeedbackFragment" />
+        <action
+            android:id="@+id/action_about_to_aboutUsFragment"
+            app:destination="@id/aboutUsFragment" />
+        <action
+            android:id="@+id/action_about_to_userMemberFragment"
+            app:destination="@id/userMemberFragment" />
+        <action
+            android:id="@+id/action_about_to_myDeviceFragment"
+            app:destination="@id/myDeviceFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/pr1"
+        android:name="com.viatom.littlePu.fragment.Pc100Fragment">
+
+        <action
+            android:id="@+id/action_pr1_to_prAboutFragment"
+            app:destination="@id/prAboutFragment" />
+        <action
+            android:id="@+id/action_pr1_to_prMeasureFragment"
+            app:destination="@id/prMeasureFragment"
+            app:popUpTo="@id/prMeasureFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_pr1_to_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+        <deepLink
+            android:id="@+id/deepLink4"
+            android:autoVerify="true"
+            app:uri="viatom://pr/measureWait" />
+    </fragment>
+    <fragment
+        android:id="@+id/prMeasureFragment"
+        android:name="com.viatom.littlePu.fragment.Pc100MeasureFragment"
+        android:label="PrMeasureFragment">
+        <action
+            android:id="@+id/action_prMeasureFragment_to_prAboutFragment"
+            app:destination="@id/prAboutFragment"
+            app:popUpTo="@id/prAboutFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_prMeasureFragment_to_prResultFragment"
+            app:destination="@id/prResultFragment"
+            app:popUpTo="@id/prResultFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_prMeasureFragment_to_pr1"
+            app:destination="@id/pr1"
+            app:popUpTo="@id/pr1"
+            app:popUpToInclusive="true" />
+        <deepLink
+            android:id="@+id/deepLink"
+            android:autoVerify="true"
+            app:uri="viatom://pr/measure" />
+        <action
+            android:id="@+id/action_prMeasureFragment_to_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/prAboutFragment"
+        android:name="com.viatom.littlePu.fragment.Pc100AboutFragment"
+        android:label="PrAboutFragment">
+        <deepLink
+            android:id="@+id/deepLink14"
+            android:autoVerify="true"
+            app:uri="viatom://pr/setting" />
+    </fragment>
+    <fragment
+        android:id="@+id/prResultFragment"
+        android:name="com.viatom.littlePu.fragment.Pc100ResultFragment"
+        android:label="PrResultFragment">
+        <action
+            android:id="@+id/action_prResultFragment_to_prAboutFragment"
+            app:destination="@id/prAboutFragment"
+            app:popUpTo="@id/prAboutFragment"
+            app:popUpToInclusive="true" />
+        <deepLink
+            android:id="@+id/deepLink3"
+            android:autoVerify="true"
+            app:uri="viatom://pr/result" />
+        <action
+            android:id="@+id/action_prResultFragment_to_reportFragment"
+            app:destination="@id/reportFragment"
+            app:popUpTo="@id/reportFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/ecgAiReportFragment"
+        android:name="com.viatom.littlePu.fragment.EcgAiReportFragment"
+        tools:layout="EcgAiReportFragment">
+
+
+        <action
+            android:id="@+id/action_ecgAiReportFragment_to_doctorFragment"
+            app:destination="@id/doctorFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/reportFragment"
+        android:name="com.viatom.littlePu.fragment.ReportFragment"
+        android:label="ReportFragment">
+        <action
+            android:id="@+id/action_reportFragment_to_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_reportFragment_to_doctorFragment"
+            app:destination="@id/doctorFragment" />
+        <deepLink
+            android:id="@+id/deepLink7"
+            app:uri="viatom://report" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/newUserInfoFragment"
+        android:name="com.viatom.littlePu.fragment.NewUserInfoFragment"
+        android:label="NewUserInfoFragment">
+        <action
+            android:id="@+id/action_newUserInfoFragment_to_main"
+            app:destination="@id/main"
+            app:popUpTo="@id/main"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/h5Fragment"
+        android:name="com.viatom.littlePu.fragment.H5Fragment"
+        android:label="H5Fragment">
+        <action
+            android:id="@+id/action_h5Fragment_to_doctorFragment"
+            app:destination="@id/doctorFragment"
+            app:popUpTo="@id/doctorFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/userFeedbackFragment"
+        android:name="com.viatom.littlePu.fragment.UserFeedbackFragment"
+        android:label="UserFeedbackFragment" />
+    <fragment
+        android:id="@+id/aboutUsFragment"
+        android:name="com.viatom.littlePu.fragment.AboutUsFragment"
+        android:label="AboutUsFragment" />
+    <fragment
+        android:id="@+id/userMemberFragment"
+        android:name="com.viatom.littlePu.fragment.UserMemberFragment"
+        android:label="UserMemberFragment">
+        <action
+            android:id="@+id/action_userMemberFragment_to_newMemberInfoFragment"
+            app:destination="@id/newMemberInfoFragment" />
+        <action
+            android:id="@+id/action_userMemberFragment_to_otherMemberInfoFragment"
+            app:destination="@id/otherMemberInfoFragment" />
+        <action
+            android:id="@+id/action_userMemberFragment_to_userInfo"
+            app:destination="@id/userInfo" />
+        <action
+            android:id="@+id/action_userMemberFragment_to_memberInfoFragment"
+            app:destination="@id/memberInfoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/newMemberInfoFragment"
+        android:name="com.viatom.littlePu.fragment.NewMemberInfoFragment"
+        android:label="NewMemberInfoFragment" />
+    <fragment
+        android:id="@+id/otherMemberInfoFragment"
+        android:name="com.viatom.littlePu.fragment.OtherMemberInfoFragment"
+        android:label="OtherMemberInfoFragment" />
+    <fragment
+        android:id="@+id/memberInfoFragment"
+        android:name="com.viatom.littlePu.fragment.MemberInfoFragment"
+        android:label="MemberInfoFragment" />
+    <fragment
+        android:id="@+id/thermoFragment"
+        android:name="com.viatom.littlePu.fragment.ThermoFragment"
+        android:label="ThermoFragment">
+        <deepLink
+            android:id="@+id/deepLink9"
+            android:autoVerify="true"
+            app:uri="viatom://thermo" />
+    </fragment>
+    <fragment
+        android:id="@+id/oxyFragment"
+        android:name="com.viatom.littlePu.fragment.OxyFragment"
+        android:label="OxyFragment">
+        <deepLink
+            android:id="@+id/deepLink10"
+            android:autoVerify="true"
+            app:uri="viatom://oxy" />
+        <action
+            android:id="@+id/action_oxyFragment_to_o2RingSettingFragment"
+            app:destination="@id/o2RingSettingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/o2RingSettingFragment"
+        android:name="com.viatom.littlePu.fragment.O2RingSettingFragment"
+        android:label="O2RingSettingFragment">
+        <deepLink
+            android:id="@+id/deepLink12"
+            android:autoVerify="true"
+            app:uri="viatom://oxy/setting" />
+    </fragment>
+    <fragment
+        android:id="@+id/myDeviceFragment"
+        android:name="com.viatom.littlePu.fragment.MyDeviceFragment"
+        android:label="MyDeviceFragment">
+        <action
+            android:id="@+id/action_myDeviceFragment_to_ecgDeviceSettingFragment"
+            app:destination="@id/ecgDeviceSettingFragment" />
+        <action
+            android:id="@+id/action_myDeviceFragment_to_prAboutFragment"
+            app:destination="@id/prAboutFragment" />
+        <action
+            android:id="@+id/action_myDeviceFragment_to_o2RingSettingFragment"
+            app:destination="@id/o2RingSettingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/pc100NotBindFragment"
+        android:name="com.viatom.littlePu.fragment.Pc100NotBindFragment"
+        android:label="Pc100NotBindFragment">
+        <deepLink
+            android:id="@+id/deepLink11"
+            android:autoVerify="true"
+            app:uri="viatom://pr/measureWait2" />
+    </fragment>
+    <fragment
+        android:id="@+id/videoCallFragment"
+        android:name="com.viatom.littlePu.fragment.VideoCallFragment"
+        android:label="VideoCallFragment">
+        <deepLink
+            android:id="@+id/deepLink15"
+            app:uri="viatom://video/call" />
+    </fragment>
+
+
+</navigation>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/ecgReportFragment">
+
+    <fragment
+        android:id="@+id/ecgReportFragment"
+        android:name="com.viatom.littlePu.recordfragment.EcgReportFragment"
+        android:label="EcgReportFragment" />
+    <fragment
+        android:id="@+id/pc100ReportFragment"
+        android:name="com.viatom.littlePu.recordfragment.Pc100ReportFragment"
+        android:label="Pc100ReportFragment" />
+    <fragment
+        android:id="@+id/oxyReportFragment"
+        android:name="com.viatom.littlePu.recordfragment.OxyReportFragment"
+        android:label="OxyReportFragment" />
+    <fragment
+        android:id="@+id/thermoReportFragment"
+        android:name="com.viatom.littlePu.recordfragment.ThermoReportFragment"
+        android:label="ThermoReportFragment" />
+    <fragment
+        android:id="@+id/noDataReportFragment"
+        android:name="com.viatom.littlePu.recordfragment.NoDataReportFragment"
+        android:label="NoDataReportFragment" />
+</navigation>
