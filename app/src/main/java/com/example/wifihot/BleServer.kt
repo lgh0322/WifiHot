@@ -23,14 +23,10 @@ object BleServer {
     }
 
 
-    fun startWrite(){
-        Thread{
-            val input= socket.getOutputStream()
-            while (true){
-                Thread.sleep(2000)
-                input.write("\n".toByteArray())
-            }
-        }.start()
+    fun send(b:ByteArray){
+        val output= socket.getOutputStream()
+        output.write(b)
+        output.flush()
     }
 
     fun byteArray2String(byteArray: ByteArray):String {
