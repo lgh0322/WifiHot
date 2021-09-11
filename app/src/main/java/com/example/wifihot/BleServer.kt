@@ -9,14 +9,21 @@ object BleServer {
     val dataScope = CoroutineScope(Dispatchers.IO)
     lateinit var  socket : Socket
 
+    interface Receive{
+        fun tcpReceive(byteArray: ByteArray)
+    }
+
+    var receive:Receive?=null
+
 
     fun startRead(){
         Thread{
+            val buffer = ByteArray(2000)
             val input= socket.getInputStream()
             while(true){
-                val bytes=input.readBytes()
-                if(bytes.size!=0){
-                    Log.e("fuckNet", byteArray2String(bytes))
+                val bytes=input.read(buffer)
+                if(bytes>0){
+                    receive?.tcpReceive(buffer.copyOfRange(0,bytes))
                 }
             }
         }.start()
