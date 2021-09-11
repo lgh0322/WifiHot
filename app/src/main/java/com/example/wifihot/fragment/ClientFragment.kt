@@ -177,6 +177,9 @@ class ClientFragment:Fragment() {
             time=System.currentTimeMillis()
             while(true){
                 val pic=GetPic()
+                if(pic==null){
+                    continue
+                }
                 withContext(Dispatchers.Main){
                     count++
                     if(count>=10){

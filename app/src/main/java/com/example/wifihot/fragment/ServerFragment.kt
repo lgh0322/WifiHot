@@ -271,7 +271,6 @@ class ServerFragment : Fragment() {
                 );
                jpegArray=data.clone()
                 jpegSize=jpegArray.size
-//                bitmap= BitmapFactory.decodeStream(ByteArrayInputStream(data))
                 BleServer.send(TcpCmd.ReplyFileStart(jpegSize,jpegSeq))
             }
             image.close()
