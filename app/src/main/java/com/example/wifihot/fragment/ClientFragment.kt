@@ -173,25 +173,31 @@ class ClientFragment:Fragment() {
         var count=0;
 
         BleServer.dataScope.launch {
-            delay(1000)
-            time=System.currentTimeMillis()
-            while(true){
-                val pic=GetPic()
-                if(pic==null){
-                    continue
-                }
-                withContext(Dispatchers.Main){
-                    count++
-                    if(count>=10){
-                        val x=(System.currentTimeMillis()-time).toFloat()/1000f
-                        binding.fps.text=(10f/x).toInt().toString()+" fps"
-                        time=System.currentTimeMillis()
-                        count=0
+            try {
+                delay(1000)
+                time=System.currentTimeMillis()
+                while(true){
+                    val pic=GetPic()
+                    if(pic==null){
+                        continue
                     }
-                    binding.img.setImageBitmap(pic)
+                    val fx=pic.clone()
+                    withContext(Dispatchers.Main){
+                        count++
+                        if(count>=10){
+                            val x=(System.currentTimeMillis()-time).toFloat()/1000f
+                            binding.fps.text=(10f/x).toInt().toString()+" fps"
+                            time=System.currentTimeMillis()
+                            count=0
+                        }
+                        val fg= BitmapFactory.decodeStream(ByteArrayInputStream(fx))
+                        binding.img.setImageBitmap(fg)
+                    }
                 }
-                delay(20)
+            }catch (e:Exception){
+
             }
+
         }
 
 
@@ -200,26 +206,43 @@ class ClientFragment:Fragment() {
 
 
     val lock= Mutex()
-
-    private suspend  fun GetPic():Bitmap?{
-        lock.withLock {
-            val dum=withTimeoutOrNull(1000){
-                withTimeoutOrNull(200){
-                    BleServer.send(TcpCmd.readFileStart())
-                    fileChannel.receive()
-                }
-                while (imageJpeg.index<imageJpeg.size){
-                    BleServer.send(TcpCmd.readFileData(imageJpeg.index))
-                    withTimeoutOrNull(200){
-                        imageJpeg.add(fileDataChannel.receive())
+    private suspend  fun GetPic():ByteArray?{
+        try {
+            var end=false
+            lock.withLock {
+                val dum=withTimeoutOrNull(1000){
+                    val c=withTimeoutOrNull(200){
+                        BleServer.send(TcpCmd.readFileStart())
+                        fileChannel.receive()
+                    }
+                    if(c==null){
+                        end=true
+                        return@withTimeoutOrNull
+                    }
+                    while (imageJpeg.index<imageJpeg.size){
+                        BleServer.send(TcpCmd.readFileData(imageJpeg.index))
+                        val cc=withTimeoutOrNull(500){
+                            imageJpeg.add(fileDataChannel.receive())
+                        }
+                        if(cc==null){
+                            end=true
+                            return@withTimeoutOrNull
+                        }
                     }
                 }
+                if(dum==null){
+                    return null
+                }
+                if(end){
+                    return null
+                }
+                return imageJpeg.content
             }
-            if(dum==null){
-                return null
-            }
-            return BitmapFactory.decodeStream(ByteArrayInputStream(imageJpeg.content))
+
+        }catch (e:Exception){
+            return null
         }
+
     }
 
     private fun handleDataPool(bytes: ByteArray?): ByteArray? {

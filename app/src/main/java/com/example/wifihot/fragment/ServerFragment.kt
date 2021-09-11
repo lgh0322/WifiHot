@@ -24,14 +24,16 @@ import com.example.wifihot.databinding.FragmentServerBinding
 import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.lang.Runnable
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.experimental.inv
 
 class ServerFragment : Fragment() {
@@ -50,18 +52,17 @@ class ServerFragment : Fragment() {
     lateinit var mHandler: Handler
     lateinit var mCaptureSession: CameraCaptureSession
     lateinit var mPreviewBuilder: CaptureRequest.Builder
-    var wantImg = false
     private var mHandlerThread: HandlerThread? = null
     lateinit var mImageReader: ImageReader
     private var pool: ByteArray? = null
 
-    val mtu=50000
+    val mtu = 60000
 
-    var bitmap:Bitmap?=null
-    lateinit var jpegArray:ByteArray
-    var jpegSize=0
-    var jpegIndex=0
-    var jpegSeq=0;
+    var bitmap: Bitmap? = null
+    lateinit var jpegArray: ByteArray
+    var jpegSize = 0
+    var jpegIndex = 0
+    var jpegSeq = 0;
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -83,7 +84,7 @@ class ServerFragment : Fragment() {
         startBackgroundThread()
         openCamera()
 
-        BleServer.receive=object :BleServer.Receive{
+        BleServer.receive = object : BleServer.Receive {
             override fun tcpReceive(byteArray: ByteArray) {
                 byteArray.apply {
                     pool = add(pool, this)
@@ -97,7 +98,6 @@ class ServerFragment : Fragment() {
 
         return binding.root
     }
-
 
 
     private fun handleDataPool(bytes: ByteArray?): ByteArray? {
@@ -136,32 +136,55 @@ class ServerFragment : Fragment() {
     }
 
 
+    val imgArray=ArrayList<ByteArray>()
+
     private fun onResponseReceived(response: Response) {
 
         when (response.cmd) {
-            TcpCmd.CMD_READ_FILE_START->{
-                wantImg=true
-                jpegIndex=0
-                jpegSeq=response.pkgNo
+            TcpCmd.CMD_READ_FILE_START -> {
+                BleServer.dataScope.launch {
+                        jpegIndex = 0
+                        jpegArray=imgArray.last()
+                        jpegSeq = response.pkgNo
+                        jpegSize = jpegArray.size
+                        BleServer.send(TcpCmd.ReplyFileStart(jpegSize, jpegSeq))
+                }
+
+
             }
-            TcpCmd.CMD_READ_FILE_DATA->{
-                val start=toUInt(response.content)
-                val lap=jpegSize-start
-                if(lap>0){
-                    if(lap>=mtu){
-                        BleServer.send(TcpCmd.ReplyFileData(jpegArray.copyOfRange(start,start+mtu),response.pkgNo))
-                    }else{
-                        BleServer.send(TcpCmd.ReplyFileData(jpegArray.copyOfRange(start,jpegSize),response.pkgNo))
+            TcpCmd.CMD_READ_FILE_DATA -> {
+                val start = toUInt(response.content)
+                val lap = jpegSize - start
+                if (lap > 0) {
+                    if (lap >= mtu) {
+                        BleServer.send(
+                            TcpCmd.ReplyFileData(
+                                jpegArray.copyOfRange(
+                                    start,
+                                    start + mtu
+                                ), response.pkgNo
+                            )
+                        )
+                    } else {
+                        BleServer.send(
+                            TcpCmd.ReplyFileData(
+                                jpegArray.copyOfRange(start, jpegSize),
+                                response.pkgNo
+                            )
+                        )
+                        BleServer.dataScope.launch {
+                            while(imgArray.size>5){
+                                imgArray.removeAt(0)
+                            }
+                        }
+
+
                     }
                 }
             }
 
         }
     }
-
-
-
-
 
 
     private fun startBackgroundThread() {
@@ -179,24 +202,25 @@ class ServerFragment : Fragment() {
             }
 
             override fun onDisconnected(camera: CameraDevice) {
-                Log.e("fuckCamera","a1")
+                Log.e("fuckCamera", "a1")
                 camera.close()
             }
 
             override fun onError(camera: CameraDevice, error: Int) {
-                Log.e("fuckCamera","a2")
+                Log.e("fuckCamera", "a2")
                 camera.close()
             }
 
             override fun onClosed(camera: CameraDevice) {
-                Log.e("fuckCamera","a3")
+                Log.e("fuckCamera", "a3")
                 camera.close()
             }
         }
 
     private fun openCamera() {
         try {
-            val cameraManager =requireContext().getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val cameraManager =
+                requireContext().getSystemService(Context.CAMERA_SERVICE) as CameraManager
             mPreviewSize = Size(PREVIEW_WIDTH, PREVIEW_HEIGHT)
             cameraManager.openCamera(mCameraId, mCameraDeviceStateCallback, mHandler)
         } catch (e: CameraAccessException) {
@@ -252,6 +276,7 @@ class ServerFragment : Fragment() {
         vuBuffer[nv21, ySize, vuSize]
         return nv21
     }
+
     private fun NV21toJPEG(nv21: ByteArray, width: Int, height: Int): ByteArray {
         val out = ByteArrayOutputStream()
         val yuv = YuvImage(nv21, ImageFormat.NV21, width, height, null)
@@ -259,22 +284,39 @@ class ServerFragment : Fragment() {
         return out.toByteArray()
     }
 
+    var time = System.currentTimeMillis()
+    var count = 0
+
+
     private inner class ImageSaver(var reader: ImageReader) : Runnable {
         override fun run() {
-            val image = reader.acquireLatestImage() ?: return
+            BleServer.dataScope.launch {
+                val image = reader.acquireLatestImage()
+                if (image == null) {
+                    return@launch
+                }
+                withContext(Dispatchers.Main) {
+                    count++
+                    if (count >= 10) {
+                        val x = (System.currentTimeMillis() - time).toFloat() / 1000f
+//                        binding.fps.text = (10f / x).toInt().toString() + " fps"
+                        time = System.currentTimeMillis()
+                        count = 0
+                    }
+                }
 
-            if(wantImg){
-                wantImg=false
-                val   data = NV21toJPEG(
+                val data = NV21toJPEG(
                     YUV_420_888toNV21(image),
                     image.width, image.height
                 );
-               jpegArray=data.clone()
-                jpegSize=jpegArray.size
-                BleServer.send(TcpCmd.ReplyFileStart(jpegSize,jpegSeq))
-            }
-            image.close()
 
+
+                imgArray.add(data.clone())
+
+
+                image.close()
+
+            }
         }
     }
 

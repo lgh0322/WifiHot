@@ -24,6 +24,7 @@
 
     </uses-permission>
     <application
+        android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true"
         android:name=".MainApplication"
         android:allowBackup="true"
