@@ -1,10 +1,7 @@
 package com.example.wifihot.fragment
 
 import android.content.Context
-import android.graphics.BitmapFactory
-import android.graphics.ImageFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
+import android.graphics.*
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
@@ -58,7 +55,13 @@ class ServerFragment : Fragment() {
     lateinit var mImageReader: ImageReader
     private var pool: ByteArray? = null
 
+    val mtu=50000
 
+    var bitmap:Bitmap?=null
+    lateinit var jpegArray:ByteArray
+    var jpegSize=0
+    var jpegIndex=0
+    var jpegSeq=0;
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -137,10 +140,20 @@ class ServerFragment : Fragment() {
 
         when (response.cmd) {
             TcpCmd.CMD_READ_FILE_START->{
-
+                wantImg=true
+                jpegIndex=0
+                jpegSeq=response.pkgNo
             }
             TcpCmd.CMD_READ_FILE_DATA->{
-                
+                val start=toUInt(response.content)
+                val lap=jpegSize-start
+                if(lap>0){
+                    if(lap>=mtu){
+                        BleServer.send(TcpCmd.ReplyFileData(jpegArray.copyOfRange(start,start+mtu),response.pkgNo))
+                    }else{
+                        BleServer.send(TcpCmd.ReplyFileData(jpegArray.copyOfRange(start,jpegSize),response.pkgNo))
+                    }
+                }
             }
 
         }
@@ -256,11 +269,10 @@ class ServerFragment : Fragment() {
                     YUV_420_888toNV21(image),
                     image.width, image.height
                 );
-                Log.e("fuckfuck",data.size.toString()+"      "+image.width)
-
-                val bitmap= BitmapFactory.decodeStream(ByteArrayInputStream(data))
-
-
+               jpegArray=data.clone()
+                jpegSize=jpegArray.size
+//                bitmap= BitmapFactory.decodeStream(ByteArrayInputStream(data))
+                BleServer.send(TcpCmd.ReplyFileStart(jpegSize,jpegSeq))
             }
             image.close()
 
