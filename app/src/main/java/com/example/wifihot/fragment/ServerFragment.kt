@@ -56,7 +56,7 @@ class ServerFragment : Fragment() {
     lateinit var mImageReader: ImageReader
     private var pool: ByteArray? = null
 
-    val mtu = 60000
+    val mtu = 65000
 
     var bitmap: Bitmap? = null
     lateinit var jpegArray: ByteArray
