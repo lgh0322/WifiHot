@@ -14,12 +14,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.wifihot.ClientHeart
+import com.example.wifihot.*
 import com.example.wifihot.ClientHeart.mySocket
 
-import com.example.wifihot.MainApplication
-import com.example.wifihot.MySocket
-import com.example.wifihot.Response
 import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentClientBinding
 import com.example.wifihot.utiles.CRCUtils
@@ -33,6 +30,7 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.Socket
 import java.net.UnknownHostException
+import kotlin.concurrent.timer
 import kotlin.experimental.inv
 
 class ClientFragment : Fragment() {
@@ -167,7 +165,7 @@ class ClientFragment : Fragment() {
                     }
                     TcpCmd.CMD_READ_FILE_DATA -> {
                         ClientHeart.dataScope.launch {
-                            sendIndex[response.pkgNo] = -1
+                            fileChannel.send(response.pkgNo)
                             imageJpeg.set(response.content, response.pkgNo)
                         }
                     }
@@ -231,16 +229,18 @@ class ClientFragment : Fragment() {
                     sendIndex = IntArray(num) {
                         1
                     }
-                    var loop = true
-                    while (loop) {
-                        loop=false
-                        for (k in sendIndex.indices) {
-                            if (sendIndex[k] != -1) {
-                                loop = true
+
+                    for (k in sendIndex.indices) {
+                        if (sendIndex[k] != -1) {
+                            var time=System.currentTimeMillis()
+                            do {
+
                                 ClientHeart.send(TcpCmd.readFileData(k * 1000, clientId))
-                            }
+                            } while (fileChannel.receive() != k)
+                            Log.e("fuckaa",(System.currentTimeMillis()-time).toString())
                         }
                     }
+
 
                 }
                 if (dum == null) {

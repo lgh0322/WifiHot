@@ -54,6 +54,7 @@ object ServerHeart {
                         }
                         if (CRCUtils.calCRC8(byteArray) == byteArray[len - 1]) {
                             val bleResponse = Response(byteArray)
+                            Log.e("fuckgg",(System.currentTimeMillis()- timex).toString())
                             receiveYes?.onResponseReceived(bleResponse, mySocket)
                         }
                         for (k in 0 until len) {
@@ -88,6 +89,7 @@ object ServerHeart {
         }
     }
 
+    var timex=0L
 
     fun startRead(mySocket: MySocket) {
         dataScope.launch {
@@ -98,6 +100,7 @@ object ServerHeart {
                 try {
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
+                        timex=System.currentTimeMillis()
                         val bytes=buffer.copyOfRange(0,byteSize)
                         mySocket.pool.addAll(bytes)
                         poccessLinkData(mySocket)
