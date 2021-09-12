@@ -295,23 +295,26 @@ class ServerFragment : Fragment() {
                 if (image == null) {
                     return@launch
                 }
-                withContext(Dispatchers.Main) {
-                    count++
-                    if (count >= 10) {
-                        val x = (System.currentTimeMillis() - time).toFloat() / 1000f
-//                        binding.fps.text = (10f / x).toInt().toString() + " fps"
-                        time = System.currentTimeMillis()
-                        count = 0
-                    }
-                }
-
-                val data = NV21toJPEG(
-                    YUV_420_888toNV21(image),
-                    image.width, image.height
-                );
+//                withContext(Dispatchers.Main) {
+//                    count++
+//                    if (count >= 10) {
+//                        val x = (System.currentTimeMillis() - time).toFloat() / 1000f
+////                        binding.fps.text = (10f / x).toInt().toString() + " fps"
+//                        time = System.currentTimeMillis()
+//                        count = 0
+//                    }
+//                }
 
 
-                imgArray.add(data.clone())
+
+                    val data = NV21toJPEG(
+                        YUV_420_888toNV21(image),
+                        image.width, image.height
+                    );
+
+                    imgArray.add(data.clone())
+
+
 
 
                 image.close()

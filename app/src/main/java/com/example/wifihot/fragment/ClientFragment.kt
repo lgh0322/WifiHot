@@ -210,8 +210,8 @@ class ClientFragment:Fragment() {
         try {
             var end=false
             lock.withLock {
-                val dum=withTimeoutOrNull(1000){
-                    val c=withTimeoutOrNull(200){
+                val dum=withTimeoutOrNull(10){
+                    val c=withTimeoutOrNull(5){
                         BleServer.send(TcpCmd.readFileStart())
                         fileChannel.receive()
                     }
@@ -221,7 +221,7 @@ class ClientFragment:Fragment() {
                     }
                     while (imageJpeg.index<imageJpeg.size){
                         BleServer.send(TcpCmd.readFileData(imageJpeg.index))
-                        val cc=withTimeoutOrNull(500){
+                        val cc=withTimeoutOrNull(5){
                             imageJpeg.add(fileDataChannel.receive())
                         }
                         if(cc==null){
