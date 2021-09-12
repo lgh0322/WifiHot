@@ -24,6 +24,7 @@ import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
 import kotlinx.coroutines.*
+import okhttp3.internal.closeQuietly
 import java.io.ByteArrayOutputStream
 import java.lang.Runnable
 import java.net.ServerSocket
@@ -37,6 +38,7 @@ class ServerFragment : Fragment() {
 
     lateinit var wifiManager: WifiManager
     private val PORT = 9999
+    lateinit var server:ServerSocket
 
 
     private val mCameraId = "0"
@@ -58,6 +60,7 @@ class ServerFragment : Fragment() {
     var jpegSize = 0
     var jpegIndex = 0
     var jpegSeq = 0;
+    lateinit var acceptJob:Job
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,9 +72,18 @@ class ServerFragment : Fragment() {
 
 
         BleServer.dataScope.launch {
-            val server = ServerSocket(PORT)
-            socket = server.accept()
-            BleServer.startRead()
+             server = ServerSocket(PORT)
+
+            acceptJob=BleServer.dataScope.launch {
+                try {
+                    socket = server.accept()
+                    BleServer.startRead()
+                }catch (e:Exception){
+
+                }
+
+            }
+
         }
 
         binding = FragmentServerBinding.inflate(inflater, container, false)
@@ -336,6 +348,7 @@ class ServerFragment : Fragment() {
 
     override fun onPause() {
         closeCamera()
+        server.close()
         super.onPause()
 
     }
