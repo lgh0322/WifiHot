@@ -38,7 +38,7 @@ class ServerFragment : Fragment() {
 
     lateinit var wifiManager: WifiManager
     private val PORT = 9999
-    lateinit var server:ServerSocket
+    lateinit var server: ServerSocket
 
 
     private val mCameraId = "0"
@@ -60,7 +60,7 @@ class ServerFragment : Fragment() {
     var jpegSize = 0
     var jpegIndex = 0
     var jpegSeq = 0;
-    lateinit var acceptJob:Job
+    lateinit var acceptJob: Job
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -72,13 +72,13 @@ class ServerFragment : Fragment() {
 
 
         BleServer.dataScope.launch {
-             server = ServerSocket(PORT)
+            server = ServerSocket(PORT)
 
-            acceptJob=BleServer.dataScope.launch {
+            acceptJob = BleServer.dataScope.launch {
                 try {
                     socket = server.accept()
                     BleServer.startRead()
-                }catch (e:Exception){
+                } catch (e: Exception) {
 
                 }
 
@@ -143,18 +143,26 @@ class ServerFragment : Fragment() {
     }
 
 
-    val imgArray=ArrayList<ByteArray>()
+    val imgArray = ArrayList<ByteArray>()
 
     private fun onResponseReceived(response: Response) {
 
         when (response.cmd) {
             TcpCmd.CMD_READ_FILE_START -> {
                 BleServer.dataScope.launch {
+                    if (imgArray.isEmpty()) {
+                        return@launch
+                    }
+                    try {
                         jpegIndex = 0
-                        jpegArray=imgArray.last()
+                        jpegArray = imgArray.last()
                         jpegSeq = response.pkgNo
                         jpegSize = jpegArray.size
                         BleServer.send(TcpCmd.ReplyFileStart(jpegSize, jpegSeq))
+                    } catch (e: Exception) {
+
+                    }
+
                 }
 
 
@@ -180,7 +188,7 @@ class ServerFragment : Fragment() {
                             )
                         )
                         BleServer.dataScope.launch {
-                            while(imgArray.size>5){
+                            while (imgArray.size > 5) {
                                 imgArray.removeAt(0)
                             }
                         }
@@ -253,7 +261,7 @@ class ServerFragment : Fragment() {
             mPreviewSize.width,
             mPreviewSize.height,
             ImageFormat.YUV_420_888,
-            2 /*最大的图片数，mImageReader里能获取到图片数，但是实际中是2+1张图片，就是多一张*/
+            5 /*最大的图片数，mImageReader里能获取到图片数，但是实际中是2+1张图片，就是多一张*/
         )
 
         mPreviewBuilder.addTarget(mImageReader.surface)
@@ -298,7 +306,13 @@ class ServerFragment : Fragment() {
     private inner class ImageSaver(var reader: ImageReader) : Runnable {
         override fun run() {
             BleServer.dataScope.launch {
-                val image = reader.acquireLatestImage()
+                var image: Image? = null
+                try {
+                    image = reader.acquireLatestImage()
+                } catch (e: Exception) {
+
+                }
+
                 if (image == null) {
                     return@launch
                 }
@@ -319,10 +333,10 @@ class ServerFragment : Fragment() {
 
 
                     imgArray.add(data.clone())
-                    if(imgArray.size>10){
+                    if (imgArray.size > 10) {
                         imgArray.removeAt(0)
                     }
-                }catch (e:Exception){
+                } catch (e: Exception) {
 
                 }
 
@@ -346,16 +360,21 @@ class ServerFragment : Fragment() {
         })
     }
 
-    override fun onPause() {
+
+    override fun onDestroy() {
         closeCamera()
         server.close()
-        super.onPause()
-
+        super.onDestroy()
     }
 
     private fun closeCamera() {
-        mCaptureSession.stopRepeating()
-        mCaptureSession.close()
+        try {
+            mCaptureSession.stopRepeating()
+            mCaptureSession.close()
+        } catch (e: Exception) {
+
+        }
+
         mCameraDevice!!.close()
         mImageReader.close()
         stopBackgroundThread()
