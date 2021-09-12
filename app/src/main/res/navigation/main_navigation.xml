@@ -19,10 +19,10 @@
     </fragment>
     <fragment
         android:id="@+id/clientFragment"
-        android:name="com.example.wifihot.fragment.ClientFragment"
+        android:name="com.example.wifihot.client.ClientFragment"
         android:label="ClientFragment" />
     <fragment
         android:id="@+id/serverFragment"
-        android:name="com.example.wifihot.fragment.ServerFragment"
+        android:name="com.example.wifihot.server.ServerFragment"
         android:label="ServerFragment" />
 </navigation>

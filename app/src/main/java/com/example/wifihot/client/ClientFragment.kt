@@ -1,14 +1,12 @@
-package com.example.wifihot.fragment
+package com.example.wifihot.client
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
-import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
@@ -16,14 +14,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import com.example.wifihot.BleServer
 import com.example.wifihot.BleServer.socket
 import com.example.wifihot.Response
-import com.example.wifihot.TcpCmd
-import com.example.wifihot.client.ImageJpeg
+import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentClientBinding
-import com.example.wifihot.databinding.FragmentMainBinding
 import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
@@ -31,7 +26,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.Dispatcher
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.Socket

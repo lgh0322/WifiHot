@@ -1,4 +1,4 @@
-package com.example.wifihot.fragment
+package com.example.wifihot.server
 
 import android.content.Context
 import android.graphics.*
@@ -18,20 +18,15 @@ import androidx.fragment.app.Fragment
 import com.example.wifihot.BleServer
 import com.example.wifihot.BleServer.socket
 import com.example.wifihot.Response
-import com.example.wifihot.TcpCmd
-import com.example.wifihot.databinding.FragmentMainBinding
+import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentServerBinding
 import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.lang.Runnable
 import java.net.ServerSocket
-import java.net.Socket
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.experimental.inv

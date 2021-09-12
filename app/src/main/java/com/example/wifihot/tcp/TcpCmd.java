@@ -1,4 +1,4 @@
-package com.example.wifihot;
+package com.example.wifihot.tcp;
 
 import static com.example.wifihot.utiles.CRCUtils.calCRC8;
 
