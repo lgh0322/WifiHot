@@ -14,21 +14,23 @@ import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.collection.arrayMapOf
 import androidx.fragment.app.Fragment
-import com.example.wifihot.BleServer
-import com.example.wifihot.BleServer.socket
+
 import com.example.wifihot.Response
+import com.example.wifihot.ServerHeart
+import com.example.wifihot.ServerHeart.server
 import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentServerBinding
 import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
 import kotlinx.coroutines.*
-import okhttp3.internal.closeQuietly
 import java.io.ByteArrayOutputStream
 import java.lang.Runnable
 import java.net.ServerSocket
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
 import kotlin.experimental.inv
 
@@ -38,7 +40,7 @@ class ServerFragment : Fragment() {
 
     lateinit var wifiManager: WifiManager
     private val PORT = 9999
-    lateinit var server: ServerSocket
+
 
 
     private val mCameraId = "0"
@@ -51,16 +53,23 @@ class ServerFragment : Fragment() {
     lateinit var mPreviewBuilder: CaptureRequest.Builder
     private var mHandlerThread: HandlerThread? = null
     lateinit var mImageReader: ImageReader
-    private var pool: ByteArray? = null
+    private var pool0: ByteArray? = null
+    private var pool1: ByteArray? = null
 
-    val mtu = 60000
+    val mtu = 1000
 
     var bitmap: Bitmap? = null
-    lateinit var jpegArray: ByteArray
-    var jpegSize = 0
-    var jpegIndex = 0
-    var jpegSeq = 0;
+
+    val  serverSend= ConcurrentHashMap<Int,JpegSend>()
+
+
     lateinit var acceptJob: Job
+
+    inner class JpegSend(var jpegArray: ByteArray){
+        val jpegSize = jpegArray.size
+        var jpegSeq = 0;
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,17 +80,11 @@ class ServerFragment : Fragment() {
         wifiManager = requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
 
 
-        BleServer.dataScope.launch {
+        ServerHeart.dataScope.launch {
             server = ServerSocket(PORT)
 
-            acceptJob = BleServer.dataScope.launch {
-                try {
-                    socket = server.accept()
-                    BleServer.startRead()
-                } catch (e: Exception) {
-
-                }
-
+            acceptJob = ServerHeart.dataScope.launch {
+                ServerHeart.startAccept()
             }
 
         }
@@ -91,13 +94,24 @@ class ServerFragment : Fragment() {
         startBackgroundThread()
         openCamera()
 
-        BleServer.receive = object : BleServer.Receive {
-            override fun tcpReceive(byteArray: ByteArray) {
+        ServerHeart.receive = object : ServerHeart.Receive {
+
+
+            override fun tcpReceive0(byteArray: ByteArray, index: Int) {
                 byteArray.apply {
-                    pool = add(pool, this)
+                    pool0 = add(pool0, this)
                 }
-                pool?.apply {
-                    pool = handleDataPool(pool)
+                pool0?.apply {
+                    pool0 = handleDataPool(pool0,index)
+                }
+            }
+
+            override fun tcpReceive1(byteArray: ByteArray, index: Int) {
+                byteArray.apply {
+                    pool1 = add(pool1, this)
+                }
+                pool1?.apply {
+                    pool1 = handleDataPool(pool1,index)
                 }
             }
 
@@ -107,58 +121,54 @@ class ServerFragment : Fragment() {
     }
 
 
-    private fun handleDataPool(bytes: ByteArray?): ByteArray? {
+    private fun handleDataPool(bytes: ByteArray?,id:Int): ByteArray? {
         val bytesLeft: ByteArray? = bytes
 
-        if (bytes == null || bytes.size < 8) {
+        if (bytes == null || bytes.size < 9) {
             return bytes
         }
-        loop@ for (i in 0 until bytes.size - 7) {
+        loop@ for (i in 0 until bytes.size - 8) {
             if (bytes[i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
                 continue@loop
             }
 
             // need content length
-            val len = toUInt(bytes.copyOfRange(i + 5, i + 7))
+            val len = toUInt(bytes.copyOfRange(i + 6, i + 8))
             if (i + 8 + len > bytes.size) {
                 continue@loop
             }
 
-            val temp: ByteArray = bytes.copyOfRange(i, i + 8 + len)
+            val temp: ByteArray = bytes.copyOfRange(i, i + 9 + len)
             if (temp.last() == CRCUtils.calCRC8(temp)) {
-
                 val bleResponse = Response(temp)
-                onResponseReceived(bleResponse)
+                onResponseReceived(bleResponse,id)
                 val tempBytes: ByteArray? =
-                    if (i + 8 + len == bytes.size) null else bytes.copyOfRange(
-                        i + 8 + len,
+                    if (i + 9 + len == bytes.size) null else bytes.copyOfRange(
+                        i + 9 + len,
                         bytes.size
                     )
 
-                return handleDataPool(tempBytes)
+                return handleDataPool(tempBytes,id)
             }
         }
 
         return bytesLeft
     }
 
-
     val imgArray = ArrayList<ByteArray>()
 
-    private fun onResponseReceived(response: Response) {
+    private fun onResponseReceived(response: Response,id:Int) {
 
         when (response.cmd) {
             TcpCmd.CMD_READ_FILE_START -> {
-                BleServer.dataScope.launch {
+                ServerHeart.dataScope.launch {
                     if (imgArray.isEmpty()) {
                         return@launch
                     }
                     try {
-                        jpegIndex = 0
-                        jpegArray = imgArray.last()
-                        jpegSeq = response.pkgNo
-                        jpegSize = jpegArray.size
-                        BleServer.send(TcpCmd.ReplyFileStart(jpegSize, jpegSeq))
+                        serverSend[id]=JpegSend(imgArray.removeAt(0))
+                        serverSend[id]!!.jpegSeq  = response.pkgNo
+                        ServerHeart.send(TcpCmd.ReplyFileStart(serverSend[id]!!.jpegSize, serverSend[id]!!.jpegSeq,id),id)
                     } catch (e: Exception) {
 
                     }
@@ -169,29 +179,33 @@ class ServerFragment : Fragment() {
             }
             TcpCmd.CMD_READ_FILE_DATA -> {
                 val start = toUInt(response.content)
-                val lap = jpegSize - start
+                val lap = serverSend[id]!!.jpegSize - start
                 if (lap > 0) {
                     if (lap >= mtu) {
-                        BleServer.send(
+                        ServerHeart.send(
                             TcpCmd.ReplyFileData(
-                                jpegArray.copyOfRange(
+                                serverSend[id]!!.jpegArray.copyOfRange(
                                     start,
                                     start + mtu
-                                ), response.pkgNo
-                            )
+                                ), response.pkgNo,
+                                id
+                            ),
+                            id
                         )
                     } else {
-                        BleServer.send(
+                        ServerHeart.send(
                             TcpCmd.ReplyFileData(
-                                jpegArray.copyOfRange(start, jpegSize),
-                                response.pkgNo
-                            )
+                                serverSend[id]!!.jpegArray.copyOfRange(start, serverSend[id]!!.jpegSize),
+                                response.pkgNo,
+                                id
+                            ),
+                            id
                         )
-                        BleServer.dataScope.launch {
+                    /*    ServerHeart.dataScope.launch {
                             while (imgArray.size > 5) {
                                 imgArray.removeAt(0)
                             }
-                        }
+                        }*/
 
 
                     }
@@ -305,7 +319,7 @@ class ServerFragment : Fragment() {
 
     private inner class ImageSaver(var reader: ImageReader) : Runnable {
         override fun run() {
-            BleServer.dataScope.launch {
+            ServerHeart.dataScope.launch {
                 var image: Image? = null
                 try {
                     image = reader.acquireLatestImage()

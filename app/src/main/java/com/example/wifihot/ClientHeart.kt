@@ -1,11 +1,10 @@
 package com.example.wifihot
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.net.Socket
 
-object BleServer {
+object ClientHeart {
     val dataScope = CoroutineScope(Dispatchers.IO)
     lateinit var  socket : Socket
 
@@ -21,10 +20,15 @@ object BleServer {
             val buffer = ByteArray(2000)
             val input= socket.getInputStream()
             while(true){
-                val bytes=input.read(buffer)
-                if(bytes>0){
-                    receive?.tcpReceive(buffer.copyOfRange(0,bytes))
+                try {
+                    val byteSize=input.read(buffer)
+                    if(byteSize>0){
+                        receive?.tcpReceive(buffer.copyOfRange(0,byteSize))
+                    }
+                }catch (e:Exception){
+                    break
                 }
+
             }
         }.start()
     }

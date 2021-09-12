@@ -14,8 +14,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.wifihot.BleServer
-import com.example.wifihot.BleServer.socket
+import com.example.wifihot.ClientHeart
+import com.example.wifihot.ClientHeart.socket
 import com.example.wifihot.Response
 import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentClientBinding
@@ -41,6 +41,7 @@ class ClientFragment:Fragment() {
     private var fileDataChannel = Channel<ByteArray>(Channel.CONFLATED)
     private val fileChannel = Channel<Int>(Channel.CONFLATED)
 
+    var clientId=0
 
     private fun isWifiConnected(): Boolean {
         val connectivityManager =
@@ -130,10 +131,10 @@ class ClientFragment:Fragment() {
 
         val gate=intToIp(wifiManager.dhcpInfo.gateway)
         if (gate != null) {
-            BleServer.dataScope.launch {
+            ClientHeart.dataScope.launch {
                 try {
                     socket = Socket(gate, 9999)
-                    BleServer.startRead()
+                    ClientHeart.startRead()
                 } catch (e: UnknownHostException) {
                     println("请检查端口号是否为服务器IP")
                     e.printStackTrace()
@@ -151,7 +152,7 @@ class ClientFragment:Fragment() {
 
 
 
-        BleServer.receive=object :BleServer.Receive{
+        ClientHeart.receive=object :ClientHeart.Receive{
             override fun tcpReceive(byteArray: ByteArray) {
                 byteArray.apply {
                     pool = add(pool, this)
@@ -166,7 +167,7 @@ class ClientFragment:Fragment() {
 
         var count=0;
 
-        BleServer.dataScope.launch {
+        ClientHeart.dataScope.launch {
             try {
                 delay(1000)
                 time=System.currentTimeMillis()
@@ -204,9 +205,9 @@ class ClientFragment:Fragment() {
         try {
             var end=false
             lock.withLock {
-                val dum=withTimeoutOrNull(1000){
-                    val c=withTimeoutOrNull(200){
-                        BleServer.send(TcpCmd.readFileStart())
+                val dum=withTimeoutOrNull(10000){
+                    val c=withTimeoutOrNull(2000){
+                        ClientHeart.send(TcpCmd.readFileStart())
                         fileChannel.receive()
                     }
                     if(c==null){
@@ -214,13 +215,9 @@ class ClientFragment:Fragment() {
                         return@withTimeoutOrNull
                     }
                     while (imageJpeg.index<imageJpeg.size){
-                        BleServer.send(TcpCmd.readFileData(imageJpeg.index))
+                        ClientHeart.send(TcpCmd.readFileData(imageJpeg.index,clientId))
                         val cc=withTimeoutOrNull(500){
                             imageJpeg.add(fileDataChannel.receive())
-                        }
-                        if(cc==null){
-                            end=true
-                            return@withTimeoutOrNull
                         }
                     }
                 }
@@ -242,28 +239,28 @@ class ClientFragment:Fragment() {
     private fun handleDataPool(bytes: ByteArray?): ByteArray? {
         val bytesLeft: ByteArray? = bytes
 
-        if (bytes == null || bytes.size < 8) {
+        if (bytes == null || bytes.size <9) {
             return bytes
         }
-        loop@ for (i in 0 until bytes.size - 7) {
+        loop@ for (i in 0 until bytes.size - 8) {
             if (bytes[i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
                 continue@loop
             }
 
             // need content length
-            val len = toUInt(bytes.copyOfRange(i + 5, i + 7))
-            if (i + 8 + len > bytes.size) {
+            val len = toUInt(bytes.copyOfRange(i +6, i +8))
+            if (i + 9 + len > bytes.size) {
                 continue@loop
             }
 
-            val temp: ByteArray = bytes.copyOfRange(i, i + 8 + len)
+            val temp: ByteArray = bytes.copyOfRange(i, i + 9 + len)
             if (temp.last() == CRCUtils.calCRC8(temp)) {
 
                 val bleResponse = Response(temp)
                 onResponseReceived(bleResponse)
                 val tempBytes: ByteArray? =
-                    if (i + 8 + len == bytes.size) null else bytes.copyOfRange(
-                        i + 8 + len,
+                    if (i + 9 + len == bytes.size) null else bytes.copyOfRange(
+                        i + 9 + len,
                         bytes.size
                     )
 
@@ -281,12 +278,13 @@ class ClientFragment:Fragment() {
             TcpCmd.CMD_READ_FILE_START->{
                 val fileSize=toUInt(response.content)
                 imageJpeg= ImageJpeg(fileSize)
-                BleServer.dataScope.launch {
+                ClientHeart.dataScope.launch {
+                    clientId=response.id
                     fileChannel.send(fileSize)
                 }
             }
             TcpCmd.CMD_READ_FILE_DATA->{
-                BleServer.dataScope.launch {
+                ClientHeart.dataScope.launch {
                     fileDataChannel.send(response.content)
                 }
             }
