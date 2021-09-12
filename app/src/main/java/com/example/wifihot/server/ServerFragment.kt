@@ -16,6 +16,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.collection.arrayMapOf
 import androidx.fragment.app.Fragment
+import com.example.wifihot.MainApplication
+import com.example.wifihot.MySocket
 
 import com.example.wifihot.Response
 import com.example.wifihot.ServerHeart
@@ -77,12 +79,11 @@ class ServerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-        wifiManager = requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiManager = MainApplication.application.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
 
         ServerHeart.dataScope.launch {
             server = ServerSocket(PORT)
-
             acceptJob = ServerHeart.dataScope.launch {
                 ServerHeart.startAccept()
             }
@@ -94,126 +95,70 @@ class ServerFragment : Fragment() {
         startBackgroundThread()
         openCamera()
 
-        ServerHeart.receive = object : ServerHeart.Receive {
 
 
-            override fun tcpReceive0(byteArray: ByteArray, index: Int) {
-                byteArray.apply {
-                    pool0 = add(pool0, this)
-                }
-                pool0?.apply {
-                    pool0 = handleDataPool(pool0,index)
+        ServerHeart.receiveYes=object :ServerHeart.ReceiveYes{
+           override fun onResponseReceived(response: Response,mySocket: MySocket) {
+               val id=mySocket.id
+                when (response.cmd) {
+                    TcpCmd.CMD_READ_FILE_START -> {
+                        ServerHeart.dataScope.launch {
+                            if (imgArray.isEmpty()) {
+                                return@launch
+                            }
+                            try {
+                                serverSend[id]=JpegSend(imgArray.removeAt(0))
+                                serverSend[id]!!.jpegSeq  = response.pkgNo
+                                ServerHeart.send(TcpCmd.ReplyFileStart(serverSend[id]!!.jpegSize, serverSend[id]!!.jpegSeq,id),mySocket)
+                            } catch (e: Exception) {
+
+                            }
+
+                        }
+
+
+                    }
+                    TcpCmd.CMD_READ_FILE_DATA -> {
+                        val start = toUInt(response.content)
+                        val lap = serverSend[id]!!.jpegSize - start
+                        if (lap > 0) {
+                            if (lap >= mtu) {
+                                ServerHeart.send(
+                                    TcpCmd.ReplyFileData(
+                                        serverSend[id]!!.jpegArray.copyOfRange(
+                                            start,
+                                            start + mtu
+                                        ), response.pkgNo,
+                                        id
+                                    ),
+                                    mySocket
+                                )
+                            } else {
+                                ServerHeart.send(
+                                    TcpCmd.ReplyFileData(
+                                        serverSend[id]!!.jpegArray.copyOfRange(start, serverSend[id]!!.jpegSize),
+                                        response.pkgNo,
+                                        id
+                                    ),
+                                    mySocket
+                                )
+                            }
+                        }
+                    }
+
                 }
             }
-
-            override fun tcpReceive1(byteArray: ByteArray, index: Int) {
-                byteArray.apply {
-                    pool1 = add(pool1, this)
-                }
-                pool1?.apply {
-                    pool1 = handleDataPool(pool1,index)
-                }
-            }
-
         }
+
 
         return binding.root
     }
 
 
-    private fun handleDataPool(bytes: ByteArray?,id:Int): ByteArray? {
-        val bytesLeft: ByteArray? = bytes
-
-        if (bytes == null || bytes.size < 9) {
-            return bytes
-        }
-        loop@ for (i in 0 until bytes.size - 8) {
-            if (bytes[i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
-                continue@loop
-            }
-
-            // need content length
-            val len = toUInt(bytes.copyOfRange(i + 6, i + 8))
-            if (i + 8 + len > bytes.size) {
-                continue@loop
-            }
-
-            val temp: ByteArray = bytes.copyOfRange(i, i + 9 + len)
-            if (temp.last() == CRCUtils.calCRC8(temp)) {
-                val bleResponse = Response(temp)
-                onResponseReceived(bleResponse,id)
-                val tempBytes: ByteArray? =
-                    if (i + 9 + len == bytes.size) null else bytes.copyOfRange(
-                        i + 9 + len,
-                        bytes.size
-                    )
-
-                return handleDataPool(tempBytes,id)
-            }
-        }
-
-        return bytesLeft
-    }
 
     val imgArray = ArrayList<ByteArray>()
 
-    private fun onResponseReceived(response: Response,id:Int) {
 
-        when (response.cmd) {
-            TcpCmd.CMD_READ_FILE_START -> {
-                ServerHeart.dataScope.launch {
-                    if (imgArray.isEmpty()) {
-                        return@launch
-                    }
-                    try {
-                        serverSend[id]=JpegSend(imgArray.removeAt(0))
-                        serverSend[id]!!.jpegSeq  = response.pkgNo
-                        ServerHeart.send(TcpCmd.ReplyFileStart(serverSend[id]!!.jpegSize, serverSend[id]!!.jpegSeq,id),id)
-                    } catch (e: Exception) {
-
-                    }
-
-                }
-
-
-            }
-            TcpCmd.CMD_READ_FILE_DATA -> {
-                val start = toUInt(response.content)
-                val lap = serverSend[id]!!.jpegSize - start
-                if (lap > 0) {
-                    if (lap >= mtu) {
-                        ServerHeart.send(
-                            TcpCmd.ReplyFileData(
-                                serverSend[id]!!.jpegArray.copyOfRange(
-                                    start,
-                                    start + mtu
-                                ), response.pkgNo,
-                                id
-                            ),
-                            id
-                        )
-                    } else {
-                        ServerHeart.send(
-                            TcpCmd.ReplyFileData(
-                                serverSend[id]!!.jpegArray.copyOfRange(start, serverSend[id]!!.jpegSize),
-                                response.pkgNo,
-                                id
-                            ),
-                            id
-                        )
-                    /*    ServerHeart.dataScope.launch {
-                            while (imgArray.size > 5) {
-                                imgArray.removeAt(0)
-                            }
-                        }*/
-
-
-                    }
-                }
-            }
-
-        }
-    }
 
 
     private fun startBackgroundThread() {

@@ -15,7 +15,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.wifihot.ClientHeart
-import com.example.wifihot.ClientHeart.socket
+import com.example.wifihot.ClientHeart.mySocket
+
+import com.example.wifihot.MainApplication
+import com.example.wifihot.MySocket
 import com.example.wifihot.Response
 import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentClientBinding
@@ -126,14 +129,13 @@ class ClientFragment:Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        wifiManager =requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
-
+        wifiManager = MainApplication.application.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
         val gate=intToIp(wifiManager.dhcpInfo.gateway)
         if (gate != null) {
             ClientHeart.dataScope.launch {
                 try {
-                    socket = Socket(gate, 9999)
+                    mySocket = MySocket(Socket(gate, 9999))
                     ClientHeart.startRead()
                 } catch (e: UnknownHostException) {
                     println("请检查端口号是否为服务器IP")
@@ -153,17 +155,26 @@ class ClientFragment:Fragment() {
 
 
         ClientHeart.receive=object :ClientHeart.Receive{
-            override fun tcpReceive(byteArray: ByteArray) {
-                byteArray.apply {
-                    pool = add(pool, this)
-                }
-                pool?.apply {
-                    pool = handleDataPool(pool)
+            override fun onResponseReceived(response: Response, mySocket: MySocket) {
+                when (response.cmd) {
+                    TcpCmd.CMD_READ_FILE_START->{
+                        val fileSize=toUInt(response.content)
+                        imageJpeg= ImageJpeg(fileSize)
+                        ClientHeart.dataScope.launch {
+                            clientId=response.id
+                            fileChannel.send(fileSize)
+                        }
+                    }
+                    TcpCmd.CMD_READ_FILE_DATA->{
+                        ClientHeart.dataScope.launch {
+                            fileDataChannel.send(response.content)
+                        }
+                    }
                 }
             }
 
         }
-        var time=System.currentTimeMillis()
+        var time=0L
 
         var count=0;
 
@@ -236,59 +247,8 @@ class ClientFragment:Fragment() {
 
     }
 
-    private fun handleDataPool(bytes: ByteArray?): ByteArray? {
-        val bytesLeft: ByteArray? = bytes
-
-        if (bytes == null || bytes.size <9) {
-            return bytes
-        }
-        loop@ for (i in 0 until bytes.size - 8) {
-            if (bytes[i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
-                continue@loop
-            }
-
-            // need content length
-            val len = toUInt(bytes.copyOfRange(i +6, i +8))
-            if (i + 9 + len > bytes.size) {
-                continue@loop
-            }
-
-            val temp: ByteArray = bytes.copyOfRange(i, i + 9 + len)
-            if (temp.last() == CRCUtils.calCRC8(temp)) {
-
-                val bleResponse = Response(temp)
-                onResponseReceived(bleResponse)
-                val tempBytes: ByteArray? =
-                    if (i + 9 + len == bytes.size) null else bytes.copyOfRange(
-                        i + 9 + len,
-                        bytes.size
-                    )
-
-                return handleDataPool(tempBytes)
-            }
-        }
-
-        return bytesLeft
-    }
 
 
-    private fun onResponseReceived(response: Response) {
 
-        when (response.cmd) {
-            TcpCmd.CMD_READ_FILE_START->{
-                val fileSize=toUInt(response.content)
-                imageJpeg= ImageJpeg(fileSize)
-                ClientHeart.dataScope.launch {
-                    clientId=response.id
-                    fileChannel.send(fileSize)
-                }
-            }
-            TcpCmd.CMD_READ_FILE_DATA->{
-                ClientHeart.dataScope.launch {
-                    fileDataChannel.send(response.content)
-                }
-            }
-        }
-    }
 
 }

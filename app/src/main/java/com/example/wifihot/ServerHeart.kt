@@ -1,30 +1,87 @@
 package com.example.wifihot
 
+import android.util.Log
+import com.example.wifihot.utiles.CRCUtils
+import com.example.wifihot.utiles.unsigned
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.ServerSocket
-import java.net.Socket
+import kotlin.experimental.inv
 
 object ServerHeart {
-    val dataScope = CoroutineScope(Dispatchers.IO)
-   val  socketList=ArrayList<Socket>()
-    lateinit var server: ServerSocket
 
-    interface Receive{
-        fun tcpReceive0(byteArray: ByteArray,index:Int)
-        fun tcpReceive1(byteArray: ByteArray,index:Int)
+    interface ReceiveYes {
+        fun onResponseReceived(response: Response, mySocket: MySocket)
     }
 
-    var receive:Receive?=null
+    var receiveYes: ReceiveYes? = null
+
+    val dataScope = CoroutineScope(Dispatchers.IO)
+    lateinit var server: ServerSocket
+    val availableId = BooleanArray(256) {
+        true
+    }
+
+    private fun getAvailableId(): Int {
+        for (k in availableId.indices) {
+            if (availableId[k]) {
+                availableId[k] = false
+                return k
+            }
+        }
+        return 0
+    }
 
 
-    suspend fun startAccept(){
-        while (true){
+  
+
+
+    fun poccessLinkData(mySocket: MySocket) {
+        val linkData = mySocket.pool
+        while (linkData.size >= 9) {
+            val head = linkData[0]
+            val cmd = linkData[1]
+            val cmdInv = linkData[2]
+            val len1 = linkData[6]
+            val len2 = linkData[7]
+            val len = len1.unsigned() + len2.unsigned().shl(8) + 9
+            if (head == 0xA5.toByte()) {
+                if (cmd == cmdInv.inv()) {
+                    if (linkData.size >= len) {
+                        val byteArray = ByteArray(len) {
+                            linkData[it]
+                        }
+                        if (CRCUtils.calCRC8(byteArray) == byteArray[len - 1]) {
+                            val bleResponse = Response(byteArray)
+                            receiveYes?.onResponseReceived(bleResponse, mySocket)
+                        }
+                        for (k in 0 until len) {
+                            linkData.removeAt(0)
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                while (linkData.size > 0) {
+                    if (linkData[0] != 0xA5.toByte()) {
+                        linkData.removeAt(0)
+                    } else {
+                        break
+                    }
+                }
+            }
+        }
+    }
+
+
+    fun startAccept() {
+        while (true) {
             try {
-                val socket = server.accept()
-                socketList.add(socket)
-                startRead(socket)
+                val serverSocket = MySocket(server.accept(), getAvailableId())
+
+                startRead(serverSocket)
             } catch (e: Exception) {
 
             }
@@ -32,25 +89,27 @@ object ServerHeart {
     }
 
 
-    suspend fun startRead(socket:Socket){
-       dataScope.launch{
+    fun startRead(mySocket: MySocket) {
+        dataScope.launch {
             val buffer = ByteArray(2000)
-            val input= socket.getInputStream()
-           val id=socketList.indexOf(socket)
-            while(true){
+            val input = mySocket.socket.getInputStream()
+            var live = true
+            while (live) {
                 try {
-                    val byteSize=input.read(buffer)
-                    if(byteSize>0){
-                        if(id==0){
-                            receive?.tcpReceive0(buffer.copyOfRange(0,byteSize),id )
-                        }else{
-                            receive?.tcpReceive1(buffer.copyOfRange(0,byteSize),id )
-                        }
+                    val byteSize = input.read(buffer)
+                    if (byteSize > 0) {
+                        val bytes=buffer.copyOfRange(0,byteSize)
+                        mySocket.pool.addAll(bytes)
+                        poccessLinkData(mySocket)
+                    }
+                } catch (e: Exception) {
+                    availableId[mySocket.id] = true
+                    try {
+                        mySocket.socket.close()
+                    } catch (e: java.lang.Exception) {
 
                     }
-                }catch (e:Exception){
-                    socketList.remove(socket)
-                    break
+                    live = false
                 }
 
             }
@@ -58,22 +117,26 @@ object ServerHeart {
     }
 
 
-    fun send(b:ByteArray,index:Int){
-        val socket= socketList[index]
-        val output= socket.getOutputStream()
+    fun send(b: ByteArray, mySocket: MySocket) {
+        val output = mySocket.socket.getOutputStream()
         output.write(b)
         output.flush()
     }
 
-    fun byteArray2String(byteArray: ByteArray):String {
-        var fuc=""
+    fun byteArray2String(byteArray: ByteArray): String {
+        var fuc = ""
         for (b in byteArray) {
             val st = String.format("%02X", b)
-            fuc+=("$st  ");
+            fuc += ("$st  ");
         }
         return fuc
     }
 
 
+}
 
+fun  ArrayList<Byte>.addAll(elements: ByteArray) {
+    for(k in elements){
+        this.add(k)
+    }
 }
