@@ -3,6 +3,7 @@ package com.example.wifihot.tcp;
 import static com.example.wifihot.utiles.CRCUtils.calCRC8;
 
 public class TcpCmd {
+    
 
     public static int CMD_READ_FILE_START = 0xF2;
     public static int CMD_READ_FILE_DATA = 0xF3;
