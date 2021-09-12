@@ -4,11 +4,10 @@ class ImageJpeg(val size:Int) {
     val content=ByteArray(size){
         0
     }
-    var index=0
-    fun add(byteArray: ByteArray){
+
+    fun set(byteArray: ByteArray,index:Int){
         for(k in byteArray.indices){
-            content[index+k]=byteArray[k]
+            content[1000*index+k]=byteArray[k]
         }
-        index+=byteArray.size
     }
 }

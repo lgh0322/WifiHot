@@ -35,16 +35,16 @@ import java.net.Socket
 import java.net.UnknownHostException
 import kotlin.experimental.inv
 
-class ClientFragment:Fragment() {
+class ClientFragment : Fragment() {
     lateinit var binding: FragmentClientBinding
     lateinit var wifiManager: WifiManager
     var wifiState = 0
     private var pool: ByteArray? = null
     lateinit var imageJpeg: ImageJpeg
-    private var fileDataChannel = Channel<ByteArray>(Channel.CONFLATED)
     private val fileChannel = Channel<Int>(Channel.CONFLATED)
+    lateinit var sendIndex: IntArray
 
-    var clientId=0
+    var clientId = 0
 
     private fun isWifiConnected(): Boolean {
         val connectivityManager =
@@ -117,10 +117,9 @@ class ClientFragment:Fragment() {
     }
 
 
-
-
     private fun intToIp(paramInt: Int): String? {
-        return ((paramInt.and(255)).toString() + "." + (paramInt.shr(8).and(255)) + "." + (paramInt.shr(16).and(255)) + "."
+        return ((paramInt.and(255)).toString() + "." + (paramInt.shr(8)
+            .and(255)) + "." + (paramInt.shr(16).and(255)) + "."
                 + (paramInt.shr(24).and(255)))
     }
 
@@ -129,9 +128,10 @@ class ClientFragment:Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        wifiManager = MainApplication.application.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiManager =
+            MainApplication.application.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
-        val gate=intToIp(wifiManager.dhcpInfo.gateway)
+        val gate = intToIp(wifiManager.dhcpInfo.gateway)
         if (gate != null) {
             ClientHeart.dataScope.launch {
                 try {
@@ -148,59 +148,60 @@ class ClientFragment:Fragment() {
 
         }
 
-        requireContext().registerReceiver(wifiBroadcast,makeGattUpdateIntentFilter())
-        binding= FragmentClientBinding.inflate(inflater,container,false)
+        requireContext().registerReceiver(wifiBroadcast, makeGattUpdateIntentFilter())
+        binding = FragmentClientBinding.inflate(inflater, container, false)
 
 
 
 
-        ClientHeart.receive=object :ClientHeart.Receive{
+        ClientHeart.receive = object : ClientHeart.Receive {
             override fun onResponseReceived(response: Response, mySocket: MySocket) {
                 when (response.cmd) {
-                    TcpCmd.CMD_READ_FILE_START->{
-                        val fileSize=toUInt(response.content)
-                        imageJpeg= ImageJpeg(fileSize)
+                    TcpCmd.CMD_READ_FILE_START -> {
+                        val fileSize = toUInt(response.content)
+                        imageJpeg = ImageJpeg(fileSize)
                         ClientHeart.dataScope.launch {
-                            clientId=response.id
+                            clientId = response.id
                             fileChannel.send(fileSize)
                         }
                     }
-                    TcpCmd.CMD_READ_FILE_DATA->{
+                    TcpCmd.CMD_READ_FILE_DATA -> {
                         ClientHeart.dataScope.launch {
-                            fileDataChannel.send(response.content)
+                            sendIndex[response.pkgNo] = -1
+                            imageJpeg.set(response.content, response.pkgNo)
                         }
                     }
                 }
             }
 
         }
-        var time=0L
+        var time = 0L
 
-        var count=0;
+        var count = 0;
 
         ClientHeart.dataScope.launch {
             try {
                 delay(1000)
-                time=System.currentTimeMillis()
-                while(true){
-                    val pic=GetPic()
-                    if(pic==null){
+                time = System.currentTimeMillis()
+                while (true) {
+                    val pic = GetPic()
+                    if (pic == null) {
                         continue
                     }
-                    val fx=pic.clone()
-                    withContext(Dispatchers.Main){
+                    val fx = pic.clone()
+                    withContext(Dispatchers.Main) {
                         count++
-                        if(count>=10){
-                            val x=(System.currentTimeMillis()-time).toFloat()/1000f
-                            binding.fps.text=(10f/x).toInt().toString()+" fps"
-                            time=System.currentTimeMillis()
-                            count=0
+                        if (count >= 10) {
+                            val x = (System.currentTimeMillis() - time).toFloat() / 1000f
+                            binding.fps.text = (10f / x).toInt().toString() + " fps"
+                            time = System.currentTimeMillis()
+                            count = 0
                         }
-                        val fg= BitmapFactory.decodeStream(ByteArrayInputStream(fx))
+                        val fg = BitmapFactory.decodeStream(ByteArrayInputStream(fx))
                         binding.img.setImageBitmap(fg)
                     }
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
 
             }
 
@@ -211,44 +212,51 @@ class ClientFragment:Fragment() {
     }
 
 
-    val lock= Mutex()
-    private suspend  fun GetPic():ByteArray?{
+    val lock = Mutex()
+    private suspend fun GetPic(): ByteArray? {
         try {
-            var end=false
+            var end = false
             lock.withLock {
-                val dum=withTimeoutOrNull(10000){
-                    val c=withTimeoutOrNull(2000){
+                val dum = withTimeoutOrNull(20000) {
+                    val c = withTimeoutOrNull(10000) {
                         ClientHeart.send(TcpCmd.readFileStart())
                         fileChannel.receive()
                     }
-                    if(c==null){
-                        end=true
+                    if (c == null) {
+                        end = true
                         return@withTimeoutOrNull
                     }
-                    while (imageJpeg.index<imageJpeg.size){
-                        ClientHeart.send(TcpCmd.readFileData(imageJpeg.index,clientId))
-                        val cc=withTimeoutOrNull(500){
-                            imageJpeg.add(fileDataChannel.receive())
+
+                    val num = imageJpeg.size / 1000 + 1
+                    sendIndex = IntArray(num) {
+                        1
+                    }
+                    var loop = true
+                    while (loop) {
+                        loop=false
+                        for (k in sendIndex.indices) {
+                            if (sendIndex[k] != -1) {
+                                loop = true
+                                ClientHeart.send(TcpCmd.readFileData(k * 1000, clientId))
+                            }
                         }
                     }
+
                 }
-                if(dum==null){
+                if (dum == null) {
                     return null
                 }
-                if(end){
+                if (end) {
                     return null
                 }
                 return imageJpeg.content
             }
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             return null
         }
 
     }
-
-
-
 
 
 }

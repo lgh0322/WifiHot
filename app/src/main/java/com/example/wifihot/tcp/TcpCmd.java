@@ -43,7 +43,7 @@ public class TcpCmd {
         cmd[1] = (byte) CMD_READ_FILE_DATA;
         cmd[2] = (byte) ~CMD_READ_FILE_DATA;
         cmd[3] = (byte) id;
-        byte[] temp = shortToByteArray(seqNo);
+        byte[] temp = shortToByteArray(addr_offset/1000);
         cmd[4] = temp[0];
         cmd[5] = temp[1];
 
