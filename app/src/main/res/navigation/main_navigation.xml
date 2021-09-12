@@ -12,6 +12,8 @@
         android:label="MainFragment" >
         <action
             android:id="@+id/action_mainFragment_to_serverFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true"
             app:destination="@id/serverFragment" />
         <action
             android:id="@+id/action_mainFragment_to_clientFragment"
@@ -24,5 +26,6 @@
     <fragment
         android:id="@+id/serverFragment"
         android:name="com.example.wifihot.server.ServerFragment"
-        android:label="ServerFragment" />
+        android:label="ServerFragment"
+        />
 </navigation>

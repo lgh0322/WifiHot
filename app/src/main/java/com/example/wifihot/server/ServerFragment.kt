@@ -299,14 +299,22 @@ class ServerFragment : Fragment() {
                         count = 0
                     }
                 }
+                try {
+                    val data = NV21toJPEG(
+                        YUV_420_888toNV21(image),
+                        image.width, image.height
+                    );
 
-                val data = NV21toJPEG(
-                    YUV_420_888toNV21(image),
-                    image.width, image.height
-                );
+
+                    imgArray.add(data.clone())
+                    if(imgArray.size>10){
+                        imgArray.removeAt(0)
+                    }
+                }catch (e:Exception){
+
+                }
 
 
-                imgArray.add(data.clone())
 
 
                 image.close()
