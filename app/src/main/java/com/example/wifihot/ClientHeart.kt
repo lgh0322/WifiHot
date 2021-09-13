@@ -1,5 +1,6 @@
 package com.example.wifihot
 
+import android.util.Log
 import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.unsigned
 import kotlinx.coroutines.CoroutineScope
@@ -58,15 +59,13 @@ object ClientHeart {
 
     fun startRead(){
         Thread{
-            val buffer = ByteArray(2000)
+            val buffer = ByteArray(200000)
             val input= mySocket.socket.getInputStream()
             while(true){
                 try {
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
-                        val bytes=buffer.copyOfRange(0,byteSize)
-                        mySocket.pool.addAll(bytes)
-                        poccessLinkData(mySocket)
+                        Log.e("metSpeed",byteSize.toString())
                     }
                 }catch (e:Exception){
                     break

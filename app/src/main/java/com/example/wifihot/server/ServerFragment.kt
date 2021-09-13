@@ -21,6 +21,7 @@ import com.example.wifihot.MySocket
 
 import com.example.wifihot.Response
 import com.example.wifihot.ServerHeart
+import com.example.wifihot.ServerHeart.dataScope
 import com.example.wifihot.ServerHeart.server
 import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentServerBinding
@@ -45,32 +46,6 @@ class ServerFragment : Fragment() {
 
 
 
-    private val mCameraId = "0"
-    lateinit var mPreviewSize: Size
-    private val PREVIEW_WIDTH = 1920
-    private val PREVIEW_HEIGHT = 1080
-    private var mCameraDevice: CameraDevice? = null
-    lateinit var mHandler: Handler
-    lateinit var mCaptureSession: CameraCaptureSession
-    lateinit var mPreviewBuilder: CaptureRequest.Builder
-    private var mHandlerThread: HandlerThread? = null
-    lateinit var mImageReader: ImageReader
-    private var pool0: ByteArray? = null
-    private var pool1: ByteArray? = null
-
-    val mtu = 2000
-
-    var bitmap: Bitmap? = null
-
-    val  serverSend= ConcurrentHashMap<Int,JpegSend>()
-
-
-    lateinit var acceptJob: Job
-
-    inner class JpegSend(var jpegArray: ByteArray){
-        val jpegSize = jpegArray.size
-        var jpegSeq = 0;
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -83,7 +58,7 @@ class ServerFragment : Fragment() {
 
         ServerHeart.dataScope.launch {
             server = ServerSocket(PORT)
-            acceptJob = ServerHeart.dataScope.launch {
+            ServerHeart.dataScope.launch {
                 ServerHeart.startAccept()
             }
 
@@ -93,69 +68,18 @@ class ServerFragment : Fragment() {
 
 
 
-        ServerHeart.receiveYes=object :ServerHeart.ReceiveYes{
-           override fun onResponseReceived(response: Response,mySocket: MySocket) {
-               val id=mySocket.id
-                when (response.cmd) {
-                    TcpCmd.CMD_READ_FILE_START -> {
-                        ServerHeart.dataScope.launch {
-                            if (imgArray.isEmpty()) {
-                                return@launch
-                            }
-                            try {
-                                serverSend[id]=JpegSend(imgArray.removeAt(0))
-                                serverSend[id]!!.jpegSeq  = response.pkgNo
-                                ServerHeart.send(TcpCmd.ReplyFileStart(serverSend[id]!!.jpegSize, serverSend[id]!!.jpegSeq,id),mySocket)
-                            } catch (e: Exception) {
-
-                            }
-
-                        }
-
-
-                    }
-                    TcpCmd.CMD_READ_FILE_DATA -> {
-                        val start = toUInt(response.content)
-                        val lap = serverSend[id]!!.jpegSize - start
-                        if (lap > 0) {
-                            if (lap >= mtu) {
-                                ServerHeart.send(
-                                    TcpCmd.ReplyFileData(
-                                        serverSend[id]!!.jpegArray.copyOfRange(
-                                            start,
-                                            start + mtu
-                                        ), response.pkgNo,
-                                        id
-                                    ),
-                                    mySocket
-                                )
-                            } else {
-                                ServerHeart.send(
-                                    TcpCmd.ReplyFileData(
-                                        serverSend[id]!!.jpegArray.copyOfRange(start, serverSend[id]!!.jpegSize),
-                                        response.pkgNo,
-                                        id
-                                    ),
-                                    mySocket
-                                )
-                            }
-                        }
-                    }
-
-                }
+        dataScope.launch {
+            delay(10000)
+            val b=ByteArray(2000000){
+                it.toByte()
+            }
+            while (true){
+                ServerHeart.send(b)
             }
         }
 
-
         return binding.root
     }
-
-
-
-    val imgArray = ArrayList<ByteArray>()
-
-
-
 
 
 

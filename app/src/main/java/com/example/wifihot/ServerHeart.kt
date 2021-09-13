@@ -75,11 +75,11 @@ object ServerHeart {
         }
     }
 
-
+   lateinit var serverSocket :MySocket
     fun startAccept() {
         while (true) {
             try {
-                val serverSocket = MySocket(server.accept(), getAvailableId())
+               serverSocket = MySocket(server.accept(), getAvailableId())
 
                 startRead(serverSocket)
             } catch (e: Exception) {
@@ -98,17 +98,10 @@ object ServerHeart {
                 try {
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
-                        val bytes=buffer.copyOfRange(0,byteSize)
-                        mySocket.pool.addAll(bytes)
-                        poccessLinkData(mySocket)
-                    }
-                } catch (e: Exception) {
-                    availableId[mySocket.id] = true
-                    try {
-                        mySocket.socket.close()
-                    } catch (e: java.lang.Exception) {
+                       Log.e("metSpeed",byteSize.toString())
 
                     }
+                } catch (e: Exception) {
                     live = false
                 }
 
@@ -117,9 +110,9 @@ object ServerHeart {
     }
 
 
-    fun send(b: ByteArray, mySocket: MySocket) {
-        val output = mySocket.socket.getOutputStream()
-        output.write(b)
+    fun send(b: ByteArray) {
+        val output= serverSocket.socket.getOutputStream()
+       output.write(b)
         output.flush()
     }
 
