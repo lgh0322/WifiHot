@@ -97,11 +97,12 @@ class ServerFragment : Fragment() {
                 when (response.cmd) {
                     TcpCmd.CMD_READ_FILE_START -> {
                         ServerHeart.dataScope.launch {
-                            if (imgArray.isEmpty()) {
+                            val list=imgArray.get(imgArray.size-2)
+                            if (list==null) {
                                 return@launch
                             }
                             try {
-                                serverSend[id] = JpegSend(imgArray.last())
+                                serverSend[id] = JpegSend(list)
                                 serverSend[id]!!.jpegSeq = response.pkgNo
                                 ServerHeart.send(
                                     TcpCmd.ReplyFileStart(
@@ -127,9 +128,13 @@ class ServerFragment : Fragment() {
                             ),
                             mySocket
                         )
-                        while (imgArray.size > 10) {
-                            imgArray.removeAt(0)
+                        GlobalScope.launch {
+                            while (imgArray.size>5){
+                                imgArray.removeAt(0)
+                            }
                         }
+
+
 
                     }
 
@@ -142,7 +147,7 @@ class ServerFragment : Fragment() {
     }
 
 
-    val imgArray = ArrayList<ByteArray>()
+    val imgArray = LinkedList<ByteArray>()
 
 
     private fun startBackgroundThread() {
