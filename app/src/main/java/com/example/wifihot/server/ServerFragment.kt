@@ -58,7 +58,7 @@ class ServerFragment : Fragment() {
     private var pool0: ByteArray? = null
     private var pool1: ByteArray? = null
 
-    val mtu = 1000
+    val mtu = 2000
 
     var bitmap: Bitmap? = null
 
