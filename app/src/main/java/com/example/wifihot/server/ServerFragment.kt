@@ -101,7 +101,7 @@ class ServerFragment : Fragment() {
                                 return@launch
                             }
                             try {
-                                serverSend[id] = JpegSend(imgArray.removeAt(0))
+                                serverSend[id] = JpegSend(imgArray.last())
                                 serverSend[id]!!.jpegSeq = response.pkgNo
                                 ServerHeart.send(
                                     TcpCmd.ReplyFileStart(
@@ -119,7 +119,6 @@ class ServerFragment : Fragment() {
 
                     }
                     TcpCmd.CMD_READ_FILE_DATA -> {
-
                         ServerHeart.send(
                             TcpCmd.ReplyFileData(
                                 serverSend[id]!!.jpegArray,
@@ -161,17 +160,14 @@ class ServerFragment : Fragment() {
             }
 
             override fun onDisconnected(camera: CameraDevice) {
-                Log.e("fuckCamera", "a1")
                 camera.close()
             }
 
             override fun onError(camera: CameraDevice, error: Int) {
-                Log.e("fuckCamera", "a2")
                 camera.close()
             }
 
             override fun onClosed(camera: CameraDevice) {
-                Log.e("fuckCamera", "a3")
                 camera.close()
             }
         }

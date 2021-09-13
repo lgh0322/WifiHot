@@ -154,25 +154,20 @@ class ClientFragment:Fragment() {
 
 
 
+
         ClientHeart.receive=object :ClientHeart.Receive{
             override fun onResponseReceived(response: Response, mySocket: MySocket) {
                 when (response.cmd) {
                     TcpCmd.CMD_READ_FILE_START->{
                         val fileSize=toUInt(response.content)
                         imageJpeg= ImageJpeg(fileSize)
-                        Log.e("fuckfuckxx","fuckfuckxx")
-
                          clientId=response.id
-
-
                         ClientHeart.send(TcpCmd.readFileData(0,clientId))
                     }
                     TcpCmd.CMD_READ_FILE_DATA->{
                         ClientHeart.dataScope.launch {
-                            imageJpeg.add(response.content)
-
-                            fileDataChannel.send(byteArrayOf(0))
-
+                                imageJpeg.add(response.content)
+                                fileDataChannel.send(byteArrayOf(0))
                         }
                     }
                 }
@@ -188,10 +183,7 @@ class ClientFragment:Fragment() {
                 delay(1000)
                 time=System.currentTimeMillis()
                 while(true){
-                    val timexx=System.currentTimeMillis()
                     val pic=GetPic()
-                    val gg=System.currentTimeMillis()-timexx
-                    Log.e("fuckPic",gg.toString())
                     if(pic==null){
                         continue
                     }

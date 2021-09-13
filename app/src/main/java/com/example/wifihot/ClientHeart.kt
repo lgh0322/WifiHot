@@ -5,10 +5,7 @@ import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
 import com.example.wifihot.utiles.unsigned
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.net.Socket
@@ -32,9 +29,12 @@ object ClientHeart {
     private fun handleDataPool(bytes: ByteArray?): ByteArray? {
         val bytesLeft: ByteArray? = bytes
 
+
         if (bytes == null || bytes.size < 11) {
             return bytes
         }
+
+
         loop@ for (i in 0 until bytes.size - 10) {
             if (bytes[i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
                 continue@loop
@@ -76,8 +76,7 @@ object ClientHeart {
     val gg=LinkedList<ByteArray>()
 
     fun startRead(){
-        Thread{
-
+      GlobalScope.launch {
             while(true){
                 try {
                     val buffer = ByteArray(200000)
@@ -85,19 +84,13 @@ object ClientHeart {
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
                         val bytes=buffer.copyOfRange(0,byteSize)
-                        Log.e("fuckSIze5555555555555", byteSize.toString())
                        gg.offer(bytes)
                         GlobalScope.launch {
                             lao.withLock {
                                 try {
                                     mySocket.pool= add(mySocket.pool,gg.poll())
-                                    Log.e("fuckSIze", mySocket.pool!!.size.toString())
-                                    val time=System.currentTimeMillis()
-
                                     mySocket.pool= handleDataPool(mySocket.pool)
 
-                                    val time2=System.currentTimeMillis()-time
-                                    Log.e("fuckfuckxx",time2.toString())
                                 }catch (e:java.lang.Exception){
 
                                 }
@@ -110,9 +103,12 @@ object ClientHeart {
                 }catch (e:Exception){
                     break
                 }
+                delay(10)
 
             }
-        }.start()
+
+      }
+
     }
 
 

@@ -24,6 +24,7 @@
 
     </uses-permission>
     <application
+        android:largeHeap="true"
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true"
         android:name=".MainApplication"
