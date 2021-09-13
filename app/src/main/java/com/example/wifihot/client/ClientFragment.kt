@@ -160,14 +160,19 @@ class ClientFragment:Fragment() {
                     TcpCmd.CMD_READ_FILE_START->{
                         val fileSize=toUInt(response.content)
                         imageJpeg= ImageJpeg(fileSize)
-                        ClientHeart.dataScope.launch {
-                            clientId=response.id
-                            fileChannel.send(fileSize)
-                        }
+                        Log.e("fuckfuckxx","fuckfuckxx")
+
+                         clientId=response.id
+
+
+                        ClientHeart.send(TcpCmd.readFileData(0,clientId))
                     }
                     TcpCmd.CMD_READ_FILE_DATA->{
                         ClientHeart.dataScope.launch {
-                            fileDataChannel.send(response.content)
+                            imageJpeg.add(response.content)
+
+                            fileDataChannel.send(byteArrayOf(0))
+
                         }
                     }
                 }
@@ -183,7 +188,10 @@ class ClientFragment:Fragment() {
                 delay(1000)
                 time=System.currentTimeMillis()
                 while(true){
+                    val timexx=System.currentTimeMillis()
                     val pic=GetPic()
+                    val gg=System.currentTimeMillis()-timexx
+                    Log.e("fuckPic",gg.toString())
                     if(pic==null){
                         continue
                     }
@@ -217,20 +225,20 @@ class ClientFragment:Fragment() {
             var end=false
             lock.withLock {
                 val dum=withTimeoutOrNull(10000){
-                    val c=withTimeoutOrNull(2000){
-                        ClientHeart.send(TcpCmd.readFileStart())
-                        fileChannel.receive()
+                    try {
+
+
+                                ClientHeart.send(TcpCmd.readFileStart())
+
+                        fileDataChannel.receive()
+
+
+
+
+                    }catch (e:java.lang.Exception){
+
                     }
-                    if(c==null){
-                        end=true
-                        return@withTimeoutOrNull
-                    }
-                    while (imageJpeg.index<imageJpeg.size){
-                        ClientHeart.send(TcpCmd.readFileData(imageJpeg.index,clientId))
-                        val cc=withTimeoutOrNull(500){
-                            imageJpeg.add(fileDataChannel.receive())
-                        }
-                    }
+
                 }
                 if(dum==null){
                     return null
@@ -242,6 +250,7 @@ class ClientFragment:Fragment() {
             }
 
         }catch (e:Exception){
+            e.printStackTrace()
             return null
         }
 

@@ -2,11 +2,18 @@ package com.example.wifihot
 
 import android.util.Log
 import com.example.wifihot.utiles.CRCUtils
+import com.example.wifihot.utiles.add
+import com.example.wifihot.utiles.toUInt
 import com.example.wifihot.utiles.unsigned
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.net.ServerSocket
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.experimental.inv
 
 object ServerHeart {
@@ -34,46 +41,43 @@ object ServerHeart {
     }
 
 
-  
+    var gh:Response?=null
 
+    lateinit var mySocket:MySocket
 
-    fun poccessLinkData(mySocket: MySocket) {
-        val linkData = mySocket.pool
-        while (linkData.size >= 9) {
-            val head = linkData[0]
-            val cmd = linkData[1]
-            val cmdInv = linkData[2]
-            val len1 = linkData[6]
-            val len2 = linkData[7]
-            val len = len1.unsigned() + len2.unsigned().shl(8) + 9
-            if (head == 0xA5.toByte()) {
-                if (cmd == cmdInv.inv()) {
-                    if (linkData.size >= len) {
-                        val byteArray = ByteArray(len) {
-                            linkData[it]
-                        }
-                        if (CRCUtils.calCRC8(byteArray) == byteArray[len - 1]) {
-                            val bleResponse = Response(byteArray)
-                            receiveYes?.onResponseReceived(bleResponse, mySocket)
-                        }
-                        for (k in 0 until len) {
-                            linkData.removeAt(0)
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            } else {
-                while (linkData.size > 0) {
-                    if (linkData[0] != 0xA5.toByte()) {
-                        linkData.removeAt(0)
-                    } else {
-                        break
-                    }
-                }
+    private fun handleDataPool(bytes: ByteArray?): ByteArray? {
+        val bytesLeft: ByteArray? = bytes
+
+        if (bytes == null || bytes.size < 11) {
+            return bytes
+        }
+        loop@ for (i in 0 until bytes.size - 10) {
+            if (bytes[i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
+                continue@loop
+            }
+
+            // need content length
+            val len = toUInt(bytes.copyOfRange(i + 6, i + 10))
+            if (i + 11 + len > bytes.size) {
+                continue@loop
+            }
+
+            val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
+            if (temp.last() == CRCUtils.calCRC8(temp)) {
+                receiveYes?.onResponseReceived(Response(temp),mySocket)
+                val tempBytes: ByteArray? =
+                    if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                        i + 11 + len,
+                        bytes.size
+                    )
+
+                return handleDataPool(tempBytes)
             }
         }
+
+        return bytesLeft
     }
+
 
 
     fun startAccept() {
@@ -88,19 +92,30 @@ object ServerHeart {
         }
     }
 
+    val gg=LinkedList<ByteArray>()
+    val wawa= Mutex()
 
     fun startRead(mySocket: MySocket) {
         dataScope.launch {
-            val buffer = ByteArray(2000)
-            val input = mySocket.socket.getInputStream()
+
             var live = true
             while (live) {
                 try {
+                    val buffer = ByteArray(2000)
+                    val input = mySocket.socket.getInputStream()
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
                         val bytes=buffer.copyOfRange(0,byteSize)
-                        mySocket.pool.addAll(bytes)
-                        poccessLinkData(mySocket)
+                        gg.offer(bytes)
+                        GlobalScope.launch {
+                            wawa.withLock {
+                                mySocket.pool= add(mySocket.pool, gg.poll())
+                                this@ServerHeart.mySocket=mySocket
+                                mySocket.pool= handleDataPool(mySocket.pool)
+                            }
+                        }
+
+
                     }
                 } catch (e: Exception) {
                     availableId[mySocket.id] = true
