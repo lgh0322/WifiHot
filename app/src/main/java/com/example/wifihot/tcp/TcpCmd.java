@@ -19,7 +19,7 @@ public class TcpCmd {
 
     public static byte[] readFileStart() {
         int len = 0;
-        byte[] cmd = new byte[9 + len];
+        byte[] cmd = new byte[11 + len];
         cmd[0] = (byte) 0xA5;
         cmd[1] = (byte) CMD_READ_FILE_START;
         cmd[2] = (byte) ~CMD_READ_FILE_START;
@@ -29,7 +29,9 @@ public class TcpCmd {
         cmd[5] = temp[1];
         cmd[6] = (byte) 0x00;
         cmd[7] = (byte) 0x00;
-        cmd[8] = calCRC8(cmd);
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
+        cmd[10] = calCRC8(cmd);
         addNo();
         return cmd;
     }
@@ -38,22 +40,24 @@ public class TcpCmd {
 
     public static byte[] readFileData(int addr_offset,int id) {
         int len = 4;
-        byte[] cmd = new byte[9 + len];
+        byte[] cmd = new byte[11+ len];
         cmd[0] = (byte) 0xA5;
         cmd[1] = (byte) CMD_READ_FILE_DATA;
         cmd[2] = (byte) ~CMD_READ_FILE_DATA;
         cmd[3] = (byte) id;
-        byte[] temp = shortToByteArray(addr_offset/1000);
+        byte[] temp = shortToByteArray(seqNo);
         cmd[4] = temp[0];
         cmd[5] = temp[1];
 
         cmd[6] = (byte) 0x04;
         cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
         temp = intToByteArray(addr_offset);
         for (int k = 0; k < len; k++) {
-            cmd[8 + k] = temp[k];
+            cmd[10+ k] = temp[k];
         }
-        cmd[8+len] = calCRC8(cmd);
+        cmd[10+len] = calCRC8(cmd);
         addNo();
         return cmd;
     }
@@ -62,7 +66,7 @@ public class TcpCmd {
 
     public static byte[] ReplyFileStart(int size,int seq,int id) {
         int len = 4;
-        byte[] cmd = new byte[9 + len];
+        byte[] cmd = new byte[11 + len];
         cmd[0] = (byte) 0xA5;
         cmd[1] = (byte) CMD_READ_FILE_START;
         cmd[2] = (byte) ~CMD_READ_FILE_START;
@@ -74,12 +78,14 @@ public class TcpCmd {
 
         cmd[6] = (byte) 0x04;
         cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
 
         temp = intToByteArray(size);
         for (int k = 0; k < len; k++) {
-            cmd[8 + k] = temp[k];
+            cmd[10 + k] = temp[k];
         }
-        cmd[8+len] = calCRC8(cmd);
+        cmd[10+len] = calCRC8(cmd);
         addNo();
         return cmd;
     }
@@ -87,7 +93,7 @@ public class TcpCmd {
 
     public static byte[] ReplyFileData(byte[] contents,int seq,int id) {
         int len = contents.length;
-        byte[] cmd = new byte[9 + len];
+        byte[] cmd = new byte[11 + len];
         cmd[0] = (byte) 0xA5;
         cmd[1] = (byte) CMD_READ_FILE_DATA;
         cmd[2] = (byte) ~CMD_READ_FILE_DATA;
@@ -96,13 +102,15 @@ public class TcpCmd {
         cmd[4] = temp[0];
         cmd[5] = temp[1];
 
-        temp = shortToByteArray(len);
+        temp = intToByteArray(len);
         cmd[6] = temp[0];
         cmd[7] = temp[1];
+        cmd[8] = temp[2];
+        cmd[9] = temp[3];
         for (int k = 0; k < len; k++) {
-            cmd[8 + k] = contents[k];
+            cmd[10 + k] = contents[k];
         }
-        cmd[8+len] = calCRC8(cmd);
+        cmd[10+len] = calCRC8(cmd);
         addNo();
         return cmd;
     }

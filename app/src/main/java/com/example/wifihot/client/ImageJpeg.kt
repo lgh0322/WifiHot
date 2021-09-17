@@ -5,9 +5,11 @@ class ImageJpeg(val size:Int) {
         0
     }
 
-    fun set(byteArray: ByteArray,index:Int){
+    var index=0
+    fun add(byteArray: ByteArray){
         for(k in byteArray.indices){
-            content[1000*index+k]=byteArray[k]
+            content[index+k]=byteArray[k]
         }
+        index+=byteArray.size
     }
 }

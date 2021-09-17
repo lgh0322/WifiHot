@@ -14,13 +14,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.wifihot.*
+import com.example.wifihot.ClientHeart
 import com.example.wifihot.ClientHeart.mySocket
-
-import com.example.wifihot.tcp.TcpCmd
+import com.example.wifihot.MainApplication
+import com.example.wifihot.MySocket
+import com.example.wifihot.Response
 import com.example.wifihot.databinding.FragmentClientBinding
-import com.example.wifihot.utiles.CRCUtils
-import com.example.wifihot.utiles.add
+import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.utiles.toUInt
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -30,8 +30,6 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.Socket
 import java.net.UnknownHostException
-import kotlin.concurrent.timer
-import kotlin.experimental.inv
 
 class ClientFragment : Fragment() {
     lateinit var binding: FragmentClientBinding
@@ -41,6 +39,7 @@ class ClientFragment : Fragment() {
     lateinit var imageJpeg: ImageJpeg
     private val fileChannel = Channel<Int>(Channel.CONFLATED)
     lateinit var sendIndex: IntArray
+    private var fileDataChannel = Channel<ByteArray>(Channel.CONFLATED)
 
     var clientId = 0
 
@@ -52,7 +51,7 @@ class ClientFragment : Fragment() {
     }
 
     private fun getConnectWifiSsid(): String? {
-        val wifiInfo = wifiManager!!.connectionInfo
+        val wifiInfo = wifiManager.connectionInfo
         Log.d("wifiInfo", wifiInfo.toString())
         Log.d("SSID", wifiInfo.ssid)
         return wifiInfo.ssid
@@ -158,15 +157,13 @@ class ClientFragment : Fragment() {
                     TcpCmd.CMD_READ_FILE_START -> {
                         val fileSize = toUInt(response.content)
                         imageJpeg = ImageJpeg(fileSize)
-                        ClientHeart.dataScope.launch {
-                            clientId = response.id
-                            fileChannel.send(fileSize)
-                        }
+                        clientId = response.id
+                        ClientHeart.send(TcpCmd.readFileData(0, clientId))
                     }
                     TcpCmd.CMD_READ_FILE_DATA -> {
                         ClientHeart.dataScope.launch {
-                            fileChannel.send(response.pkgNo)
-                            imageJpeg.set(response.content, response.pkgNo)
+                            imageJpeg.add(response.content)
+                            fileDataChannel.send(byteArrayOf(0))
                         }
                     }
                 }
@@ -177,6 +174,7 @@ class ClientFragment : Fragment() {
 
         var count = 0;
 
+        val fuckx= Mutex()
         ClientHeart.dataScope.launch {
             try {
                 delay(1000)
@@ -195,8 +193,11 @@ class ClientFragment : Fragment() {
                             time = System.currentTimeMillis()
                             count = 0
                         }
-                        val fg = BitmapFactory.decodeStream(ByteArrayInputStream(fx))
-                        binding.img.setImageBitmap(fg)
+                        fuckx.withLock {
+                            val fg = BitmapFactory.decodeStream(ByteArrayInputStream(fx))
+                            binding.img.setImageBitmap(fg)
+                        }
+
                     }
                 }
             } catch (e: Exception) {
@@ -213,42 +214,17 @@ class ClientFragment : Fragment() {
     val lock = Mutex()
     private suspend fun GetPic(): ByteArray? {
         try {
-            var end = false
             lock.withLock {
-                val dum = withTimeoutOrNull(20000) {
-                    val c = withTimeoutOrNull(10000) {
-                        ClientHeart.send(TcpCmd.readFileStart())
-                        fileChannel.receive()
-                    }
-                    if (c == null) {
-                        end = true
-                        return@withTimeoutOrNull
-                    }
 
-                    val num = imageJpeg.size / 1000 + 1
-                    sendIndex = IntArray(num) {
-                        1
-                    }
-
-                    for (k in sendIndex.indices) {
-                        if (sendIndex[k] != -1) {
-                            var time=System.currentTimeMillis()
-                            do {
-
-                                ClientHeart.send(TcpCmd.readFileData(k * 1000, clientId))
-                            } while (fileChannel.receive() != k)
-                            Log.e("fuckaa",(System.currentTimeMillis()-time).toString())
-                        }
-                    }
-
-
+                val c = withTimeoutOrNull(200) {
+                    ClientHeart.send(TcpCmd.readFileStart())
+                    fileDataChannel.receive()
                 }
-                if (dum == null) {
+                if (c == null) {
                     return null
                 }
-                if (end) {
-                    return null
-                }
+
+
                 return imageJpeg.content
             }
 

@@ -103,13 +103,21 @@ class ServerFragment : Fragment() {
                 when (response.cmd) {
                     TcpCmd.CMD_READ_FILE_START -> {
                         ServerHeart.dataScope.launch {
-                            if (imgArray.isEmpty()) {
+                            Log.e("fuckfuck","fudsfljsdlkfjklsd")
+                            val list=imgArray.get(imgArray.size-2)
+                            if (list==null) {
                                 return@launch
                             }
                             try {
-                                serverSend[id]=JpegSend(imgArray.removeAt(0))
-                                serverSend[id]!!.jpegSeq  = response.pkgNo
-                                ServerHeart.send(TcpCmd.ReplyFileStart(serverSend[id]!!.jpegSize, serverSend[id]!!.jpegSeq,id),mySocket)
+                                serverSend[id] = JpegSend(list)
+                                serverSend[id]!!.jpegSeq = response.pkgNo
+                                ServerHeart.send(
+                                    TcpCmd.ReplyFileStart(
+                                        serverSend[id]!!.jpegSize,
+                                        serverSend[id]!!.jpegSeq,
+                                        id
+                                    ), mySocket
+                                )
                             } catch (e: Exception) {
 
                             }
@@ -119,29 +127,17 @@ class ServerFragment : Fragment() {
 
                     }
                     TcpCmd.CMD_READ_FILE_DATA -> {
-                        val start = toUInt(response.content)
-                        val lap = serverSend[id]!!.jpegSize - start
-                        if (lap > 0) {
-                            if (lap >= mtu) {
-                                ServerHeart.send(
-                                    TcpCmd.ReplyFileData(
-                                        serverSend[id]!!.jpegArray.copyOfRange(
-                                            start,
-                                            start + mtu
-                                        ), response.pkgNo,
-                                        id
-                                    ),
-                                    mySocket
-                                )
-                            } else {
-                                ServerHeart.send(
-                                    TcpCmd.ReplyFileData(
-                                        serverSend[id]!!.jpegArray.copyOfRange(start, serverSend[id]!!.jpegSize),
-                                        response.pkgNo,
-                                        id
-                                    ),
-                                    mySocket
-                                )
+                        ServerHeart.send(
+                            TcpCmd.ReplyFileData(
+                                serverSend[id]!!.jpegArray,
+                                response.pkgNo,
+                                id
+                            ),
+                            mySocket
+                        )
+                        GlobalScope.launch {
+                            while (imgArray.size>5){
+                                imgArray.removeAt(0)
                             }
                         }
                     }
@@ -292,9 +288,7 @@ class ServerFragment : Fragment() {
 
 
                     imgArray.add(data.clone())
-                    if (imgArray.size > 10) {
-                        imgArray.removeAt(0)
-                    }
+
                 } catch (e: Exception) {
 
                 }
