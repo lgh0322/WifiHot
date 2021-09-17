@@ -156,7 +156,7 @@ class ClientFragment : Fragment() {
                 when (response.cmd) {
                     TcpCmd.CMD_READ_FILE_START -> {
                         val fileSize = toUInt(response.content)
-                        imageJpeg = ImageJpeg(fileSize)
+                        imageJpeg = ImageJpeg()
                         clientId = response.id
                         ClientHeart.send(TcpCmd.readFileData(0, clientId))
                     }

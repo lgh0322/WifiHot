@@ -1,7 +1,7 @@
 package com.example.wifihot
 
 import android.app.Application
-
+import com.tencent.bugly.crashreport.CrashReport
 
 
 class MainApplication : Application() {
@@ -17,7 +17,7 @@ class MainApplication : Application() {
 
 
         application = this
-
+        CrashReport.initCrashReport(this, "a56b5010b6", false);
     }
 
 
