@@ -18,14 +18,16 @@ object BleServer {
 
     fun startRead(){
         Thread{
-            val buffer = ByteArray(2000)
+
             val input= socket.getInputStream()
             while(true){
+                val buffer = ByteArray(20000)
                 val bytes=input.read(buffer)
                 if(bytes>0){
                     Log.e("gaga","gagaga")
                     receive?.tcpReceive(buffer.copyOfRange(0,bytes))
                 }
+                Thread.sleep(10)
             }
         }.start()
     }

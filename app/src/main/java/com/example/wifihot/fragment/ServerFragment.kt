@@ -44,6 +44,7 @@ class ServerFragment : Fragment() {
     lateinit var wifiManager: WifiManager
     private val PORT = 9999
 
+    var pool:ByteArray?=null
 
 
     override fun onCreateView(
@@ -65,17 +66,12 @@ class ServerFragment : Fragment() {
 
         BleServer.receive = object : BleServer.Receive {
             override fun tcpReceive(byteArray: ByteArray) {
-                val fuck=String(byteArray)
-                Log.e("gaga",fuck)
+                pool=add(pool,byteArray)
+                pool=poccessLinkData()
             }
 
         }
-        binding.fuck.setOnClickListener {
-            dataScope.launch {
-                BleServer.send("fuck".toByteArray())
-            }
 
-        }
 
         return binding.root
     }
@@ -83,6 +79,79 @@ class ServerFragment : Fragment() {
 
 
 
+
+    fun poccessLinkData():ByteArray? {
+        var bytes =pool
+        while (true){
+            if (bytes == null || bytes.size < 11) {
+                break
+            }
+            var con=false
+
+            loop@ for (i in 0 until bytes!!.size - 10) {
+                if (bytes!![i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
+                    continue@loop
+                }
+
+                // need content length
+                val len = toUInt(bytes.copyOfRange(i + 6, i + 10))
+                if(len<0){
+                    continue@loop
+                }
+                if (i + 11 + len > bytes.size) {
+                    continue@loop
+                }
+
+                val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
+                if (temp.last() == CRCUtils.calCRC8(temp)) {
+                   onResponseReceived(Response(temp))
+                    val tempBytes: ByteArray? =
+                        if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                            i + 11 + len,
+                            bytes.size
+                        )
+
+                    bytes=tempBytes
+                    con=true
+                    break@loop
+                }
+            }
+            if(!con){
+                return bytes
+            }else{
+                con=false
+            }
+
+        }
+        return null
+    }
+
+
+    val loc= Mutex()
+
+    fun onResponseReceived(x:Response){
+        when(x.cmd){
+            TcpCmd.CMD_READ_FILE_DATA->{
+                MainScope().launch {
+                    loc.withLock {
+                        val fg = BitmapFactory.decodeStream(ByteArrayInputStream(x.content.clone()))
+                        if(fg!=null){
+                            binding.img.setImageBitmap(fg)
+                        }
+
+                    }
+
+                    dataScope.launch {
+                        BleServer.send("fuck".toByteArray())
+                    }
+
+                }
+            }
+            TcpCmd.CMD_READ_FILE_START->{
+
+            }
+        }
+    }
 
 
 

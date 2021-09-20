@@ -209,40 +209,13 @@ class ClientFragment:Fragment() {
     private suspend  fun GetPic():ByteArray?{
         try {
             var end=false
-            lock.withLock {
-                val dum=withTimeoutOrNull(10){
-                    val c=withTimeoutOrNull(5){
-                        BleServer.send(TcpCmd.readFileStart())
-                        fileChannel.receive()
-                    }
-                    if(c==null){
-                        end=true
-                        return@withTimeoutOrNull
-                    }
-                    while (imageJpeg.index<imageJpeg.size){
-                        BleServer.send(TcpCmd.readFileData(imageJpeg.index))
-                        val cc=withTimeoutOrNull(5){
-                            imageJpeg.add(fileDataChannel.receive())
-                        }
-                        if(cc==null){
-                            end=true
-                            return@withTimeoutOrNull
-                        }
-                    }
-                }
-                if(dum==null){
-                    return null
-                }
-                if(end){
-                    return null
-                }
-                return imageJpeg.content
-            }
+
 
         }catch (e:Exception){
             return null
         }
 
+        return null
     }
 
     private fun handleDataPool(bytes: ByteArray?): ByteArray? {
