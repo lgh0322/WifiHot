@@ -23,6 +23,7 @@ object BleServer {
             while(true){
                 val bytes=input.read(buffer)
                 if(bytes>0){
+                    Log.e("gaga","gagaga")
                     receive?.tcpReceive(buffer.copyOfRange(0,bytes))
                 }
             }
