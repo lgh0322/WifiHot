@@ -1,6 +1,6 @@
 package com.example.wifihot
 
 object NetInfo {
-    val server="65.49.212.218"
+    val server="192.168.5.108"
     val port=5555
 }
