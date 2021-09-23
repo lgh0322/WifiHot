@@ -60,17 +60,17 @@ object ServerHeart {
                 val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
                 if (temp.last() == CRCUtils.calCRC8(temp)) {
                     receiveYes?.onResponseReceived(Response(temp),mySocket)
+                    val tempBytes: ByteArray? =
+                        if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                            i + 11 + len,
+                            bytes.size
+                        )
 
+                    bytes=tempBytes
+                    con=true
+                    break@loop
                 }
-                val tempBytes: ByteArray? =
-                    if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
-                        i + 11 + len,
-                        bytes.size
-                    )
 
-                bytes=tempBytes
-                con=true
-                break@loop
             }
             if(!con){
                 return bytes
@@ -84,9 +84,9 @@ object ServerHeart {
 
     fun startAccept() {
 
-                val serverSocket = MySocket(Socket(NetInfo.server, NetInfo.port))
 
-                startRead(serverSocket)
+
+                startRead()
 
 
     }
@@ -94,13 +94,14 @@ object ServerHeart {
     var timex=0L
 
 
-    fun startRead(mySocket: MySocket) {
+    fun startRead() {
         dataScope.launch {
-            val buffer = ByteArray(200000)
-            val input = mySocket.socket.getInputStream()
+            var mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
             var live = true
             while (live) {
                 try {
+                    val buffer = ByteArray(200000)
+                    val input = mySocket.socket.getInputStream()
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
                         timex=System.currentTimeMillis()
@@ -109,13 +110,22 @@ object ServerHeart {
                         mySocket.pool= poccessLinkData(mySocket)
                     }
                 } catch (e: Exception) {
-                    availableId[mySocket.id] = true
+
                     try {
                         mySocket.socket.close()
-                    } catch (e: java.lang.Exception) {
+                    }catch (ert:java.lang.Exception){
 
                     }
-                    live = false
+                    delay(1000)
+                    do {
+                        try {
+                            mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
+                            break;
+                        }catch (qwe:java.lang.Exception){
+
+                        }
+                    }while (true)
+
                 }
                 delay(5)
 

@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import java.net.Socket
 import java.util.*
 import kotlin.experimental.inv
 
@@ -37,6 +38,9 @@ object ClientHeart {
 
                 // need content length
                 val len = toUInt(bytes.copyOfRange(i + 6, i + 10))
+                if(len<0){
+                    continue@loop
+                }
                 if (i + 11 + len > bytes.size) {
                     continue@loop
                 }
@@ -44,19 +48,18 @@ object ClientHeart {
                 val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
                 if (temp.last() == CRCUtils.calCRC8(temp)) {
                     receive?.onResponseReceived(Response(temp), mySocket)
-                    Log.e("fuckfuck","fudsfljsdlkfjk222lsd5555")
+                    val tempBytes: ByteArray? =
+                        if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                            i + 11 + len,
+                            bytes.size
+                        )
+
+                    bytes = tempBytes
+                    con = true
+
+                    break@loop
                 }
-                Log.e("fuckfuck","fudsfljsdlkfjk222lsd55556666")
-                val tempBytes: ByteArray? =
-                    if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
-                        i + 11 + len,
-                        bytes.size
-                    )
 
-                bytes = tempBytes
-                con = true
-
-                break@loop
             }
             if (!con) {
                 return bytes
@@ -73,10 +76,11 @@ object ClientHeart {
 
     fun startRead() {
         ClientHeart.dataScope.launch {
-            val buffer = ByteArray(2000000)
-            val input = mySocket.socket.getInputStream()
+
             while (true) {
                 try {
+                    val buffer = ByteArray(200000)
+                    val input = mySocket.socket.getInputStream()
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
                         val bytes = buffer.copyOfRange(0, byteSize)
@@ -87,6 +91,23 @@ object ClientHeart {
                         Log.e("fuckTime", fuck.toString())
                     }
                 } catch (e: Exception) {
+                    e.printStackTrace()
+                    try {
+                        mySocket.socket.close()
+                    }catch (ert:java.lang.Exception){
+
+                    }
+                    do{
+                        try {
+                            delay(1000)
+                            mySocket = MySocket(Socket(NetInfo.server,NetInfo.port))
+                            break;
+                        }catch (ew:Exception){
+
+                        }
+                    }while (true)
+
+
                 }
                 delay(5)
             }
