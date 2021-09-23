@@ -16,12 +16,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.collection.arrayMapOf
 import androidx.fragment.app.Fragment
-import com.example.wifihot.MainApplication
-import com.example.wifihot.MySocket
+import com.example.wifihot.*
 
-import com.example.wifihot.Response
-import com.example.wifihot.ServerHeart
-import com.example.wifihot.ServerHeart.server
+
 import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentServerBinding
 import com.example.wifihot.utiles.CRCUtils
@@ -31,6 +28,7 @@ import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.lang.Runnable
 import java.net.ServerSocket
+import java.net.Socket
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
@@ -83,11 +81,7 @@ class ServerFragment : Fragment() {
 
 
         ServerHeart.dataScope.launch {
-            server = ServerSocket(PORT)
-            acceptJob = ServerHeart.dataScope.launch {
                 ServerHeart.startAccept()
-            }
-
         }
 
         binding = FragmentServerBinding.inflate(inflater, container, false)
@@ -104,8 +98,12 @@ class ServerFragment : Fragment() {
                     TcpCmd.CMD_READ_FILE_START -> {
                         ServerHeart.dataScope.launch {
                             Log.e("fuckfuck","fudsfljsdlkfjklsd")
+                            if(imgArray.size<2){
+                                return@launch
+                            }
                             val list=imgArray.get(imgArray.size-2)
                             if (list==null) {
+                                Log.e("fuckfuck","fudsfljsdlkfjk222lsd")
                                 return@launch
                             }
                             try {
@@ -316,7 +314,6 @@ class ServerFragment : Fragment() {
 
     override fun onDestroy() {
         closeCamera()
-        server.close()
         super.onDestroy()
     }
 

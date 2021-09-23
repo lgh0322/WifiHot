@@ -14,11 +14,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.wifihot.ClientHeart
+import com.example.wifihot.*
 import com.example.wifihot.ClientHeart.mySocket
-import com.example.wifihot.MainApplication
-import com.example.wifihot.MySocket
-import com.example.wifihot.Response
 import com.example.wifihot.databinding.FragmentClientBinding
 import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.utiles.toUInt
@@ -132,7 +129,7 @@ class ClientFragment : Fragment() {
         if (gate != null) {
             ClientHeart.dataScope.launch {
                 try {
-                    mySocket = MySocket(Socket(gate, 9999))
+                    mySocket = MySocket(Socket(NetInfo.server,NetInfo.port))
                     ClientHeart.startRead()
                 } catch (e: UnknownHostException) {
                     println("请检查端口号是否为服务器IP")
@@ -216,7 +213,7 @@ class ClientFragment : Fragment() {
         try {
             lock.withLock {
 
-                val c = withTimeoutOrNull(200) {
+                val c = withTimeoutOrNull(2000) {
                     ClientHeart.send(TcpCmd.readFileStart())
                     fileDataChannel.receive()
                 }

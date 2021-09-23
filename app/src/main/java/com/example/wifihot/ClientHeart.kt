@@ -44,16 +44,19 @@ object ClientHeart {
                 val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
                 if (temp.last() == CRCUtils.calCRC8(temp)) {
                     receive?.onResponseReceived(Response(temp), mySocket)
-                    val tempBytes: ByteArray? =
-                        if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
-                            i + 11 + len,
-                            bytes.size
-                        )
-
-                    bytes = tempBytes
-                    con = true
-                    break@loop
+                    Log.e("fuckfuck","fudsfljsdlkfjk222lsd5555")
                 }
+                Log.e("fuckfuck","fudsfljsdlkfjk222lsd55556666")
+                val tempBytes: ByteArray? =
+                    if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                        i + 11 + len,
+                        bytes.size
+                    )
+
+                bytes = tempBytes
+                con = true
+
+                break@loop
             }
             if (!con) {
                 return bytes

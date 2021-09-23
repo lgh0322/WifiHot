@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.ServerSocket
+import java.net.Socket
 import kotlin.experimental.inv
 
 object ServerHeart {
@@ -21,7 +22,6 @@ object ServerHeart {
     var receiveYes: ReceiveYes? = null
 
     val dataScope = CoroutineScope(Dispatchers.IO)
-    lateinit var server: ServerSocket
     val availableId = BooleanArray(256) {
         true
     }
@@ -60,16 +60,17 @@ object ServerHeart {
                 val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
                 if (temp.last() == CRCUtils.calCRC8(temp)) {
                     receiveYes?.onResponseReceived(Response(temp),mySocket)
-                    val tempBytes: ByteArray? =
-                        if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
-                            i + 11 + len,
-                            bytes.size
-                        )
 
-                    bytes=tempBytes
-                    con=true
-                    break@loop
                 }
+                val tempBytes: ByteArray? =
+                    if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                        i + 11 + len,
+                        bytes.size
+                    )
+
+                bytes=tempBytes
+                con=true
+                break@loop
             }
             if(!con){
                 return bytes
@@ -82,15 +83,12 @@ object ServerHeart {
     }
 
     fun startAccept() {
-        while (true) {
-            try {
-                val serverSocket = MySocket(server.accept(), getAvailableId())
+
+                val serverSocket = MySocket(Socket(NetInfo.server, NetInfo.port))
 
                 startRead(serverSocket)
-            } catch (e: Exception) {
 
-            }
-        }
+
     }
 
     var timex=0L
