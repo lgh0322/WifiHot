@@ -18,16 +18,30 @@ object BleServer {
 
     fun startRead(){
         Thread{
-
-            val input= socket.getInputStream()
+            socket = Socket("81.71.163.52",5555)
+            var input= socket.getInputStream()
+            val buffer = ByteArray(20000)
             while(true){
-                val buffer = ByteArray(20000)
-                val bytes=input.read(buffer)
-                if(bytes>0){
-                    Log.e("gaga","gagaga")
-                    receive?.tcpReceive(buffer.copyOfRange(0,bytes))
+                try {
+                    val bytes=input.read(buffer)
+                    if(bytes>0){
+                        Log.e("gaga","gagaga")
+                        receive?.tcpReceive(buffer.copyOfRange(0,bytes))
+                    }
+                    Thread.sleep(10)
+                }catch (eer:Exception){
+                    do {
+                        try {
+                            Thread.sleep(1000)
+                            socket = Socket("81.71.163.52",5555)
+                            input= socket.getInputStream()
+                            break;
+                        }catch (ewr:java.lang.Exception){
+
+                        }
+                    }while (true)
                 }
-                Thread.sleep(10)
+
             }
         }.start()
     }

@@ -57,8 +57,6 @@ class ServerFragment : Fragment() {
 
 
         BleServer.dataScope.launch {
-            val server = ServerSocket(PORT)
-            socket = server.accept()
             BleServer.startRead()
         }
 
@@ -134,10 +132,15 @@ class ServerFragment : Fragment() {
             TcpCmd.CMD_READ_FILE_DATA->{
                 MainScope().launch {
                     loc.withLock {
-                        val fg = BitmapFactory.decodeStream(ByteArrayInputStream(x.content.clone()))
-                        if(fg!=null){
-                            binding.img.setImageBitmap(fg)
-                        }
+                        val bb=x.content.clone()
+
+
+                            val fg = BitmapFactory.decodeStream(ByteArrayInputStream(bb))
+                            if(fg!=null){
+                                binding.img.setImageBitmap(fg)
+                            }
+
+
 
                     }
 
