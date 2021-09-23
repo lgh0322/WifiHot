@@ -116,9 +116,10 @@ object ServerHeart {
                     }catch (ert:java.lang.Exception){
 
                     }
-                    delay(1000)
+
                     do {
                         try {
+                            delay(1000)
                             mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
                             break;
                         }catch (qwe:java.lang.Exception){
