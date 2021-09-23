@@ -76,11 +76,12 @@ object ClientHeart {
 
     fun startRead() {
         ClientHeart.dataScope.launch {
-
+            val buffer = ByteArray(200000)
+            var input = mySocket.socket.getInputStream()
             while (true) {
                 try {
-                    val buffer = ByteArray(200000)
-                    val input = mySocket.socket.getInputStream()
+
+
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
                         val bytes = buffer.copyOfRange(0, byteSize)
@@ -101,6 +102,7 @@ object ClientHeart {
                         try {
                             delay(1000)
                             mySocket = MySocket(Socket(NetInfo.server,NetInfo.port))
+                            input = mySocket.socket.getInputStream()
                             break;
                         }catch (ew:Exception){
 

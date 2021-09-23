@@ -98,10 +98,12 @@ object ServerHeart {
         dataScope.launch {
             var mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
             var live = true
+            val buffer = ByteArray(200000)
+            var input = mySocket.socket.getInputStream()
             while (live) {
                 try {
-                    val buffer = ByteArray(200000)
-                    val input = mySocket.socket.getInputStream()
+
+
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
                         timex=System.currentTimeMillis()
@@ -121,6 +123,7 @@ object ServerHeart {
                         try {
                             delay(1000)
                             mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
+                            input = mySocket.socket.getInputStream()
                             break;
                         }catch (qwe:java.lang.Exception){
 
