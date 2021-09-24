@@ -69,7 +69,7 @@ class ServerFragment : Fragment() {
             b[1]=carleft.shr(8).and(0xff).toByte()
             b[2]=carright.and(0xff).toByte()
             b[3]=carright.shr(8).and(0xff).toByte()
-            BleServer.send(b)
+            BleServer.send(TcpCmd.carRun( b))
         }
     }
 
@@ -124,6 +124,12 @@ class ServerFragment : Fragment() {
 
         },100)
 
+
+        binding.ota.setOnClickListener {
+            BleServer.dataScope.launch {
+                BleServer.send(TcpCmd.carOTA())
+            }
+        }
 
         return binding.root
     }
