@@ -48,9 +48,14 @@ object BleServer {
 
 
     fun send(b:ByteArray){
-        val output= socket.getOutputStream()
-        output.write(b)
-        output.flush()
+        try {
+            val output= socket.getOutputStream()
+            output.write(b)
+            output.flush()
+        }catch (e:java.lang.Exception){
+
+        }
+
     }
 
     fun byteArray2String(byteArray: ByteArray):String {

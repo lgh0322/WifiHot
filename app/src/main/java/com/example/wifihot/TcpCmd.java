@@ -8,6 +8,9 @@ public class TcpCmd {
     public static int CMD_READ_FILE_START = 0xF2;
     public static int CMD_READ_FILE_DATA = 0xF3;
 
+    public static int CMD_CAR_RUN = 0xF4;
+    public static int CMD_CAR_UPDATE = 0xF5;
+
 
     private static int seqNo = 0;
     private static void addNo() {
@@ -15,6 +18,45 @@ public class TcpCmd {
         if (seqNo >= 65535) {
             seqNo = 0;
         }
+    }
+
+    public static byte[] carRun(byte [] fuck) {
+        int len = 4;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) CMD_CAR_RUN;
+        cmd[2] = (byte) ~CMD_CAR_RUN;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        cmd[6] = (byte) 0x04;
+        cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
+        System.arraycopy(fuck, 0, cmd, 10, 4);
+        cmd[10+len] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] carOTA() {
+        int len = 0;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) CMD_CAR_UPDATE;
+        cmd[2] = (byte) ~CMD_CAR_UPDATE;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        cmd[6] = (byte) 0x00;
+        cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
+        cmd[10] = calCRC8(cmd);
+        addNo();
+        return cmd;
     }
 
     public static byte[] readFileStart() {

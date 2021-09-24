@@ -25,21 +25,32 @@
         android:layout_height="match_parent"/>
 
     <com.example.wifihot.view.JoystickView
-
+        android:id="@+id/left"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-
         android:layout_width="70dp"
         android:layout_height="70dp"/>
 
     <com.example.wifihot.view.JoystickView
-
+        android:id="@+id/right"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_width="70dp"
         android:layout_height="70dp"/>
+
+    <TextView
+        android:id="@+id/ota"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="OTA"
+        android:background="@color/cardview_dark_background"
+        android:textColor="@color/white"
+        android:textSize="10sp"
+        android:gravity="center"
+        android:layout_width="30dp"
+        android:layout_height="20dp"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

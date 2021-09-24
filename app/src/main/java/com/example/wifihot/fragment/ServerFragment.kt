@@ -25,6 +25,7 @@ import com.example.wifihot.databinding.FragmentServerBinding
 import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
+import com.example.wifihot.view.JoystickView
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -46,6 +47,31 @@ class ServerFragment : Fragment() {
 
     var pool:ByteArray?=null
 
+    var carleft=1500
+    var carright=1500
+
+    var carRunbase=1500
+    var carTurnbase=0
+
+
+    fun calcControl(){
+        carleft=carRunbase+carTurnbase
+        carright=carRunbase-carTurnbase
+    }
+
+    fun controlCar(){
+        BleServer.dataScope.launch {
+            calcControl()
+            val b=ByteArray(4){
+                0
+            }
+            b[0]=carleft.and(0xff).toByte()
+            b[1]=carleft.shr(8).and(0xff).toByte()
+            b[2]=carright.and(0xff).toByte()
+            b[3]=carright.shr(8).and(0xff).toByte()
+            BleServer.send(b)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,6 +95,34 @@ class ServerFragment : Fragment() {
             }
 
         }
+
+
+        binding.left.setOnJoystickMoveListener(object :JoystickView.OnJoystickMoveListener{
+            override fun onValueChanged(angle: Int, power: Int, direction: Int) {
+                val a1=angle.toDouble()/360.0*2.0*Math.PI
+                val k1=(Math.sin(a1))*power.toDouble()/200.0*1000.0+1500.0
+                val k2=(Math.cos(a1))*power.toDouble()/200.0*1000.0+1500.0
+                val k11=k1.toInt()
+                val k22=k2.toInt()
+                Log.e("fuck1",k22.toString())
+                carRunbase=k22
+                controlCar()
+            }
+        },100)
+
+        binding.right.setOnJoystickMoveListener(object :JoystickView.OnJoystickMoveListener{
+            override fun onValueChanged(angle: Int, power: Int, direction: Int) {
+                val a1=angle.toDouble()/360.0*2.0*Math.PI
+                val k1=(Math.sin(a1))*power.toDouble()
+                val k2=(Math.cos(a1))*power.toDouble()
+                val k11=k1.toInt()
+                val k22=k2.toInt()
+                Log.e("fuck1",k11.toString())
+                carTurnbase=k11
+                controlCar()
+            }
+
+        },100)
 
 
         return binding.root
@@ -133,20 +187,15 @@ class ServerFragment : Fragment() {
                 MainScope().launch {
                     loc.withLock {
                         val bb=x.content.clone()
-
-
                             val fg = BitmapFactory.decodeStream(ByteArrayInputStream(bb))
                             if(fg!=null){
                                 binding.img.setImageBitmap(fg)
                             }
-
-
-
                     }
 
-                    dataScope.launch {
-                        BleServer.send("fuck".toByteArray())
-                    }
+//                    dataScope.launch {
+//                        BleServer.send("fuck".toByteArray())
+//                    }
 
                 }
             }
