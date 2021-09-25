@@ -57,6 +57,10 @@ class ServerFragment : Fragment() {
     fun calcControl(){
         carleft=carRunbase+carTurnbase
         carright=carRunbase-carTurnbase
+
+
+        carright=3000-carright
+
     }
 
     fun controlCar(){
@@ -100,8 +104,8 @@ class ServerFragment : Fragment() {
         binding.left.setOnJoystickMoveListener(object :JoystickView.OnJoystickMoveListener{
             override fun onValueChanged(angle: Int, power: Int, direction: Int) {
                 val a1=angle.toDouble()/360.0*2.0*Math.PI
-                val k1=(Math.sin(a1))*power.toDouble()/200.0*1000.0+1500.0
-                val k2=(Math.cos(a1))*power.toDouble()/200.0*1000.0+1500.0
+                val k1=(Math.sin(a1))*power.toDouble()/200.0*500.0+1500.0
+                val k2=(Math.cos(a1))*power.toDouble()/200.0*500.0+1500.0
                 val k11=k1.toInt()
                 val k22=k2.toInt()
                 Log.e("fuck1",k22.toString())
