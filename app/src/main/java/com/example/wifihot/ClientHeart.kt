@@ -9,6 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.Socket
 import java.util.*
 import kotlin.experimental.inv
@@ -76,52 +78,35 @@ object ClientHeart {
 
     fun startRead() {
         ClientHeart.dataScope.launch {
-            val buffer = ByteArray(200000)
-            var input = mySocket.socket.getInputStream()
-            while (true) {
-                try {
+            var inBuff = ByteArray(2000000)
+
+            val inPacket = DatagramPacket(inBuff, inBuff.size)
 
 
-                    val byteSize = input.read(buffer)
-                    if (byteSize > 0) {
-                        val bytes = buffer.copyOfRange(0, byteSize)
+            DatagramSocket(NetInfo.port).use {
+                while (true) {
+                    try {
+                        it.receive(inPacket)
+                        val bytes = inBuff.copyOfRange(0,inPacket.length)
                         mySocket.pool = add(mySocket.pool, bytes)
                         var time = System.currentTimeMillis()
                         mySocket.pool = poccessLinkData(mySocket)
                         val fuck = System.currentTimeMillis() - time
                         Log.e("fuckTime", fuck.toString())
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    try {
-                        mySocket.socket.close()
-                    }catch (ert:java.lang.Exception){
-
-                    }
-                    do{
-                        try {
-                            delay(1000)
-                            mySocket = MySocket(Socket(NetInfo.server,NetInfo.port))
-                            input = mySocket.socket.getInputStream()
-                            break;
-                        }catch (ew:Exception){
-
-                        }
-                    }while (true)
-
-
+                    delay(2)
                 }
-                delay(5)
+
+
             }
+
         }
     }
 
 
-    fun send(b: ByteArray) {
-        val output = mySocket.socket.getOutputStream()
-        output.write(b)
-        output.flush()
-    }
+
 
     fun byteArray2String(byteArray: ByteArray): String {
         var fuc = ""

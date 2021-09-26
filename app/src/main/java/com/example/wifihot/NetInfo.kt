@@ -1,6 +1,8 @@
 package com.example.wifihot
 
 object NetInfo {
-    val server="81.71.163.52"
+    val server="192.168.5.104"
+    val client="192.168.5.103"
     val port=5555
+    var mtu=60000;
 }

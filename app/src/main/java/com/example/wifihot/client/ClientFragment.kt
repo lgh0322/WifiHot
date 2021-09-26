@@ -129,7 +129,7 @@ class ClientFragment : Fragment() {
         if (gate != null) {
             ClientHeart.dataScope.launch {
                 try {
-                    mySocket = MySocket(Socket(NetInfo.server,NetInfo.port))
+                    mySocket = MySocket()
                     ClientHeart.startRead()
                 } catch (e: UnknownHostException) {
                     println("请检查端口号是否为服务器IP")
@@ -153,12 +153,13 @@ class ClientFragment : Fragment() {
                 when (response.cmd) {
                     TcpCmd.CMD_READ_FILE_START -> {
                         val fileSize = toUInt(response.content)
-                        imageJpeg = ImageJpeg()
+
                         clientId = response.id
-                        ClientHeart.send(TcpCmd.readFileData(0, clientId))
+
                     }
                     TcpCmd.CMD_READ_FILE_DATA -> {
                         ClientHeart.dataScope.launch {
+                            imageJpeg = ImageJpeg()
                             imageJpeg.add(response.content)
                             fileDataChannel.send(byteArrayOf(0))
                         }
@@ -214,7 +215,6 @@ class ClientFragment : Fragment() {
             lock.withLock {
 
                 val c = withTimeoutOrNull(2000) {
-                    ClientHeart.send(TcpCmd.readFileStart())
                     fileDataChannel.receive()
                 }
                 if (c == null) {

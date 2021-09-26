@@ -78,12 +78,6 @@ class ServerFragment : Fragment() {
     ): View {
 
         wifiManager = MainApplication.application.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-
-
-        ServerHeart.dataScope.launch {
-                ServerHeart.startAccept()
-        }
-
         binding = FragmentServerBinding.inflate(inflater, container, false)
 
         startBackgroundThread()
@@ -92,53 +86,10 @@ class ServerFragment : Fragment() {
 
 
         ServerHeart.receiveYes=object :ServerHeart.ReceiveYes{
-           override fun onResponseReceived(response: Response,mySocket: MySocket) {
-               val id=mySocket.id
+           override fun onResponseReceived(response: Response) {
+               val id=0
                 when (response.cmd) {
-                    TcpCmd.CMD_READ_FILE_START -> {
-                        ServerHeart.dataScope.launch {
-                            Log.e("fuckfuck","fudsfljsdlkfjklsd")
-                            if(imgArray.size<2){
-                                return@launch
-                            }
-                            val list=imgArray.get(imgArray.size-2)
-                            if (list==null) {
-                                Log.e("fuckfuck","fudsfljsdlkfjk222lsd")
-                                return@launch
-                            }
-                            try {
-                                serverSend[id] = JpegSend(list)
-                                serverSend[id]!!.jpegSeq = response.pkgNo
-                                ServerHeart.send(
-                                    TcpCmd.ReplyFileStart(
-                                        serverSend[id]!!.jpegSize,
-                                        serverSend[id]!!.jpegSeq,
-                                        id
-                                    ), mySocket
-                                )
-                            } catch (e: Exception) {
 
-                            }
-
-                        }
-
-
-                    }
-                    TcpCmd.CMD_READ_FILE_DATA -> {
-                        ServerHeart.send(
-                            TcpCmd.ReplyFileData(
-                                serverSend[id]!!.jpegArray,
-                                response.pkgNo,
-                                id
-                            ),
-                            mySocket
-                        )
-                        GlobalScope.launch {
-                            while (imgArray.size>5){
-                                imgArray.removeAt(0)
-                            }
-                        }
-                    }
 
                 }
             }
@@ -285,7 +236,13 @@ class ServerFragment : Fragment() {
                     );
 
 
-                    imgArray.add(data.clone())
+                    ServerHeart.send(
+                        TcpCmd.ReplyFileData(
+                           data,
+                            456,
+                            id
+                        )
+                    )
 
                 } catch (e: Exception) {
 

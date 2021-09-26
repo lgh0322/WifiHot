@@ -1,22 +1,16 @@
 package com.example.wifihot
 
-import android.util.Log
 import com.example.wifihot.utiles.CRCUtils
-import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
-import com.example.wifihot.utiles.unsigned
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.net.ServerSocket
-import java.net.Socket
+import java.net.*
 import kotlin.experimental.inv
 
 object ServerHeart {
 
     interface ReceiveYes {
-        fun onResponseReceived(response: Response, mySocket: MySocket)
+        fun onResponseReceived(response: Response)
     }
 
     var receiveYes: ReceiveYes? = null
@@ -37,14 +31,13 @@ object ServerHeart {
     }
 
 
-
-    fun poccessLinkData(mySocket: MySocket):ByteArray? {
+    fun poccessLinkData(mySocket: MySocket): ByteArray? {
         var bytes = mySocket.pool
-        while (true){
+        while (true) {
             if (bytes == null || bytes.size < 11) {
                 break
             }
-            var con=false
+            var con = false
 
             loop@ for (i in 0 until bytes!!.size - 10) {
                 if (bytes!![i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
@@ -59,89 +52,64 @@ object ServerHeart {
 
                 val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
                 if (temp.last() == CRCUtils.calCRC8(temp)) {
-                    receiveYes?.onResponseReceived(Response(temp),mySocket)
+                    receiveYes?.onResponseReceived(Response(temp))
                     val tempBytes: ByteArray? =
                         if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
                             i + 11 + len,
                             bytes.size
                         )
 
-                    bytes=tempBytes
-                    con=true
+                    bytes = tempBytes
+                    con = true
                     break@loop
                 }
 
             }
-            if(!con){
+            if (!con) {
                 return bytes
-            }else{
-                con=false
+            } else {
+                con = false
             }
 
         }
         return null
     }
 
-    fun startAccept() {
+
+    var timex = 0L
 
 
-
-                startRead()
-
-
-    }
-
-    var timex=0L
-
-
-    fun startRead() {
-        dataScope.launch {
-            var mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
-            var live = true
-            val buffer = ByteArray(200000)
-            var input = mySocket.socket.getInputStream()
-            while (live) {
-                try {
-
-
-                    val byteSize = input.read(buffer)
-                    if (byteSize > 0) {
-                        timex=System.currentTimeMillis()
-                        val bytes=buffer.copyOfRange(0,byteSize)
-                        mySocket.pool=add(mySocket.pool,bytes)
-                        mySocket.pool= poccessLinkData(mySocket)
-                    }
-                } catch (e: Exception) {
-
-                    try {
-                        mySocket.socket.close()
-                    }catch (ert:java.lang.Exception){
-
-                    }
-
-                    do {
-                        try {
-                            delay(1000)
-                            mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
-                            input = mySocket.socket.getInputStream()
-                            break;
-                        }catch (qwe:java.lang.Exception){
-
-                        }
-                    }while (true)
-
+    fun send(b: ByteArray) {
+        DatagramSocket(NetInfo.port).use {
+            if (b.size > NetInfo.mtu) {
+                val num = b.size / NetInfo.mtu
+                for (k in 0 until num) {
+                    val sendPacket = b.copyOfRange(k * NetInfo.mtu, (k + 1) * NetInfo.mtu)
+                    val outPacket = DatagramPacket(
+                        sendPacket,
+                        sendPacket.size,
+                        InetAddress.getByName(NetInfo.client),
+                        NetInfo.port
+                    )
+                    it.send(outPacket)
                 }
-                delay(5)
-
+                val sendPacket = b.copyOfRange(num * NetInfo.mtu, b.size)
+                val outPacket = DatagramPacket(
+                    sendPacket,
+                    sendPacket.size,
+                    InetAddress.getByName(NetInfo.client),
+                    NetInfo.port
+                )
+                it.send(outPacket)
+            } else {
+                val outPacket =
+                    DatagramPacket(b, b.size, InetAddress.getByName(NetInfo.client), NetInfo.port)
+                it.send(outPacket)
             }
+
         }
-    }
 
 
-    fun send(b: ByteArray, mySocket: MySocket) {
-        val output = mySocket.socket.getOutputStream()
-        output.write(b)
-        output.flush()
     }
 
     fun byteArray2String(byteArray: ByteArray): String {
@@ -156,8 +124,8 @@ object ServerHeart {
 
 }
 
-fun  ArrayList<Byte>.addAll(elements: ByteArray) {
-    for(k in elements){
+fun ArrayList<Byte>.addAll(elements: ByteArray) {
+    for (k in elements) {
         this.add(k)
     }
 }
