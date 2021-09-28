@@ -2,6 +2,8 @@ package com.example.wifihot.tcp;
 
 import static com.example.wifihot.utiles.CRCUtils.calCRC8;
 
+import com.example.wifihot.Long2BytesUtils;
+
 public class TcpCmd {
 
 
@@ -10,6 +12,7 @@ public class TcpCmd {
 
 
     private static int seqNo = 0;
+
     private static void addNo() {
         seqNo++;
         if (seqNo >= 65535) {
@@ -23,7 +26,7 @@ public class TcpCmd {
         cmd[0] = (byte) 0xA5;
         cmd[1] = (byte) CMD_READ_FILE_START;
         cmd[2] = (byte) ~CMD_READ_FILE_START;
-        cmd[3]=(byte)0;
+        cmd[3] = (byte) 0;
         byte[] temp = shortToByteArray(seqNo);
         cmd[4] = temp[0];
         cmd[5] = temp[1];
@@ -37,10 +40,9 @@ public class TcpCmd {
     }
 
 
-
-    public static byte[] readFileData(int addr_offset,int id) {
+    public static byte[] readFileData(int addr_offset, int id) {
         int len = 4;
-        byte[] cmd = new byte[11+ len];
+        byte[] cmd = new byte[11 + len];
         cmd[0] = (byte) 0xA5;
         cmd[1] = (byte) CMD_READ_FILE_DATA;
         cmd[2] = (byte) ~CMD_READ_FILE_DATA;
@@ -55,16 +57,71 @@ public class TcpCmd {
         cmd[9] = (byte) 0x00;
         temp = intToByteArray(addr_offset);
         for (int k = 0; k < len; k++) {
-            cmd[10+ k] = temp[k];
+            cmd[10 + k] = temp[k];
         }
-        cmd[10+len] = calCRC8(cmd);
+        cmd[10 + len] = calCRC8(cmd);
         addNo();
         return cmd;
     }
 
+    public static byte[] ReplyVpsSpsPps(byte[] yes, int id) {
+        int seq = 0;
+        int len = yes.length;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) CMD_READ_FILE_START;
+        cmd[2] = (byte) ~CMD_READ_FILE_START;
+        cmd[3] = (byte) id;
 
+        byte[] temp = shortToByteArray(seq);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
 
-    public static byte[] ReplyFileStart(int size,int seq,int id) {
+        temp = intToByteArray(len);
+        cmd[6] = temp[0];
+        cmd[7] = temp[1];
+        cmd[8] = temp[2];
+        cmd[9] = temp[3];
+
+        for (int k = 0; k < len; k++) {
+            cmd[10 + k] = yes[k];
+        }
+        cmd[10 + len] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] ReplyFrame(byte[] yes, int id, Long timestamp) {
+        int seq = 0;
+        int len = yes.length;
+        byte[] cmd = new byte[11 + len + 8];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) CMD_READ_FILE_DATA;
+        cmd[2] = (byte) ~CMD_READ_FILE_DATA;
+        cmd[3] = (byte) id;
+
+        byte[] temp = shortToByteArray(seq);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+
+        temp = intToByteArray(len + 8);
+        cmd[6] = temp[0];
+        cmd[7] = temp[1];
+        cmd[8] = temp[2];
+        cmd[9] = temp[3];
+        byte[] time = Long2BytesUtils.toByteArray(timestamp);
+        for (int k = 0; k < 8; k++) {
+            cmd[10 + k] = time[k];
+        }
+        for (int k = 0; k < len; k++) {
+            cmd[18 + k] = yes[k];
+        }
+        cmd[18 + len] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] ReplyFileStart(int size, int seq, int id) {
         int len = 4;
         byte[] cmd = new byte[11 + len];
         cmd[0] = (byte) 0xA5;
@@ -85,13 +142,13 @@ public class TcpCmd {
         for (int k = 0; k < len; k++) {
             cmd[10 + k] = temp[k];
         }
-        cmd[10+len] = calCRC8(cmd);
+        cmd[10 + len] = calCRC8(cmd);
         addNo();
         return cmd;
     }
 
 
-    public static byte[] ReplyFileData(byte[] contents,int seq,int id) {
+    public static byte[] ReplyFileData(byte[] contents, int seq, int id) {
         int len = contents.length;
         byte[] cmd = new byte[11 + len];
         cmd[0] = (byte) 0xA5;
@@ -110,13 +167,10 @@ public class TcpCmd {
         for (int k = 0; k < len; k++) {
             cmd[10 + k] = contents[k];
         }
-        cmd[10+len] = calCRC8(cmd);
+        cmd[10 + len] = calCRC8(cmd);
         addNo();
         return cmd;
     }
-
-
-
 
 
     public static byte[] intToByteArray(int i) {

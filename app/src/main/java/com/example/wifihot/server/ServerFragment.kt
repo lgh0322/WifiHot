@@ -1,10 +1,12 @@
 package com.example.wifihot.server
 
+
 import android.content.Context
 import android.graphics.*
 import android.hardware.camera2.*
 import android.media.Image
 import android.media.ImageReader
+import android.media.MediaFormat
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler
@@ -12,27 +14,23 @@ import android.os.HandlerThread
 import android.util.Log
 import android.util.Size
 import android.view.LayoutInflater
+import android.view.Surface
 import android.view.View
 import android.view.ViewGroup
-import androidx.collection.arrayMapOf
 import androidx.fragment.app.Fragment
 import com.example.wifihot.*
-
-
-import com.example.wifihot.tcp.TcpCmd
 import com.example.wifihot.databinding.FragmentServerBinding
-import com.example.wifihot.utiles.CRCUtils
-import com.example.wifihot.utiles.add
-import com.example.wifihot.utiles.toUInt
+import com.example.wifihot.tcp.TcpCmd
+import com.vaca.fuckh264.record.VideoRecorder
+import com.vaca.fuckh264.record.genData
+import com.vaca.fuckh264.record.safeList
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.lang.Runnable
-import java.net.ServerSocket
-import java.net.Socket
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import kotlin.collections.ArrayList
-import kotlin.experimental.inv
 
 class ServerFragment : Fragment() {
     lateinit var binding: FragmentServerBinding
@@ -41,7 +39,7 @@ class ServerFragment : Fragment() {
     lateinit var wifiManager: WifiManager
     private val PORT = 9999
 
-
+    lateinit var mySurface: Surface
 
     private val mCameraId = "0"
     lateinit var mPreviewSize: Size
@@ -52,70 +50,62 @@ class ServerFragment : Fragment() {
     lateinit var mCaptureSession: CameraCaptureSession
     lateinit var mPreviewBuilder: CaptureRequest.Builder
     private var mHandlerThread: HandlerThread? = null
-    lateinit var mImageReader: ImageReader
+
     private var pool0: ByteArray? = null
     private var pool1: ByteArray? = null
+    private val recorderThread by lazy {
+        Executors.newFixedThreadPool(3)
+    }
 
     val mtu = 1000
 
     var bitmap: Bitmap? = null
 
-    val  serverSend= ConcurrentHashMap<Int,JpegSend>()
 
 
-    lateinit var acceptJob: Job
-
-    inner class JpegSend(var jpegArray: ByteArray){
-        val jpegSize = jpegArray.size
-        var jpegSeq = 0;
-    }
 
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater,
+            container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View {
 
         wifiManager = MainApplication.application.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
 
         ServerHeart.dataScope.launch {
-                ServerHeart.startAccept()
+            ServerHeart.startAccept()
+            delay(5000)
+            ServerHeart.send(
+                    TcpCmd.ReplyVpsSpsPps(
+                            VideoRecorder.vpsspspps!!, id
+                    )
+            )
+            delay(1000)
+            cango = true
         }
 
         binding = FragmentServerBinding.inflate(inflater, container, false)
 
         startBackgroundThread()
-        openCamera()
+        start(1080, 1920, 800000, surfaceCallback = {
+            mySurface = it
+            openCamera()
+        })
 
 
 
-        ServerHeart.receiveYes=object :ServerHeart.ReceiveYes{
-           override fun onResponseReceived(response: Response,mySocket: MySocket) {
-               val id=mySocket.id
+
+        ServerHeart.receiveYes = object : ServerHeart.ReceiveYes {
+            override fun onResponseReceived(response: Response, mySocket: MySocket) {
+                val id = mySocket.id
                 when (response.cmd) {
                     TcpCmd.CMD_READ_FILE_START -> {
                         ServerHeart.dataScope.launch {
-                            Log.e("fuckfuck","fudsfljsdlkfjklsd")
-                            if(imgArray.size<2){
-                                return@launch
-                            }
-                            val list=imgArray.get(imgArray.size-2)
-                            if (list==null) {
-                                Log.e("fuckfuck","fudsfljsdlkfjk222lsd")
-                                return@launch
-                            }
+
                             try {
-                                serverSend[id] = JpegSend(list)
-                                serverSend[id]!!.jpegSeq = response.pkgNo
-                                ServerHeart.send(
-                                    TcpCmd.ReplyFileStart(
-                                        serverSend[id]!!.jpegSize,
-                                        serverSend[id]!!.jpegSeq,
-                                        id
-                                    ), mySocket
-                                )
+
                             } catch (e: Exception) {
 
                             }
@@ -125,19 +115,7 @@ class ServerFragment : Fragment() {
 
                     }
                     TcpCmd.CMD_READ_FILE_DATA -> {
-                        ServerHeart.send(
-                            TcpCmd.ReplyFileData(
-                                serverSend[id]!!.jpegArray,
-                                response.pkgNo,
-                                id
-                            ),
-                            mySocket
-                        )
-                        GlobalScope.launch {
-                            while (imgArray.size>5){
-                                imgArray.removeAt(0)
-                            }
-                        }
+
                     }
 
                 }
@@ -148,11 +126,9 @@ class ServerFragment : Fragment() {
         return binding.root
     }
 
-
+    var cango = false
 
     val imgArray = ArrayList<ByteArray>()
-
-
 
 
     private fun startBackgroundThread() {
@@ -163,32 +139,32 @@ class ServerFragment : Fragment() {
 
 
     private val mCameraDeviceStateCallback: CameraDevice.StateCallback =
-        object : CameraDevice.StateCallback() {
-            override fun onOpened(camera: CameraDevice) {
-                mCameraDevice = camera
-                startPreview(camera)
-            }
+            object : CameraDevice.StateCallback() {
+                override fun onOpened(camera: CameraDevice) {
+                    mCameraDevice = camera
+                    startPreview(camera)
+                }
 
-            override fun onDisconnected(camera: CameraDevice) {
-                Log.e("fuckCamera", "a1")
-                camera.close()
-            }
+                override fun onDisconnected(camera: CameraDevice) {
+                    Log.e("fuckCamera", "a1")
+                    camera.close()
+                }
 
-            override fun onError(camera: CameraDevice, error: Int) {
-                Log.e("fuckCamera", "a2")
-                camera.close()
-            }
+                override fun onError(camera: CameraDevice, error: Int) {
+                    Log.e("fuckCamera", "a2")
+                    camera.close()
+                }
 
-            override fun onClosed(camera: CameraDevice) {
-                Log.e("fuckCamera", "a3")
-                camera.close()
+                override fun onClosed(camera: CameraDevice) {
+                    Log.e("fuckCamera", "a3")
+                    camera.close()
+                }
             }
-        }
 
     private fun openCamera() {
         try {
             val cameraManager =
-                requireContext().getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                    requireContext().getSystemService(Context.CAMERA_SERVICE) as CameraManager
             mPreviewSize = Size(PREVIEW_WIDTH, PREVIEW_HEIGHT)
             cameraManager.openCamera(mCameraId, mCameraDeviceStateCallback, mHandler)
         } catch (e: CameraAccessException) {
@@ -198,107 +174,61 @@ class ServerFragment : Fragment() {
 
 
     private val mSessionStateCallback: CameraCaptureSession.StateCallback =
-        object : CameraCaptureSession.StateCallback() {
-            override fun onConfigured(session: CameraCaptureSession) {
-                mCaptureSession = session
-                updatePreview()
+            object : CameraCaptureSession.StateCallback() {
+                override fun onConfigured(session: CameraCaptureSession) {
+                    mCaptureSession = session
+                    updatePreview()
 
+                }
+
+                override fun onConfigureFailed(session: CameraCaptureSession) {}
             }
-
-            override fun onConfigureFailed(session: CameraCaptureSession) {}
-        }
 
     private fun startPreview(camera: CameraDevice) {
         mPreviewBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
-        mImageReader = ImageReader.newInstance(
-            mPreviewSize.width,
-            mPreviewSize.height,
-            ImageFormat.YUV_420_888,
-            5 /*最大的图片数，mImageReader里能获取到图片数，但是实际中是2+1张图片，就是多一张*/
-        )
 
-        mPreviewBuilder.addTarget(mImageReader.surface)
-        mImageReader.setOnImageAvailableListener(
-            { reader ->
-                mHandler.post(ImageSaver(reader))
-            }, mHandler
-        )
+        mPreviewBuilder.addTarget(mySurface)
 
 
         camera.createCaptureSession(
-            Arrays.asList(mImageReader.surface),
-            mSessionStateCallback,
-            mHandler
+                Arrays.asList(mySurface),
+                mSessionStateCallback,
+                mHandler
         )
     }
 
+    private val isRecording = safeList<Int>()
+    val videoFormats = safeList<MediaFormat>()
 
-    private fun YUV_420_888toNV21(image: Image): ByteArray {
-        val nv21: ByteArray
-        val yBuffer = image.planes[0].buffer
-        val vuBuffer = image.planes[2].buffer
-        val ySize = yBuffer.remaining()
-        val vuSize = vuBuffer.remaining()
-        nv21 = ByteArray(ySize + vuSize)
-        yBuffer[nv21, 0, ySize]
-        vuBuffer[nv21, ySize, vuSize]
-        return nv21
+    fun start(
+            width: Int, height: Int, bitRate: Int, frameRate: Int = 15,
+            frameInterval: Int = 15,
+            surfaceCallback: (surface: Surface) -> Unit
+    ) {
+        isRecording.add(1)
+        val videoRecorder = VideoRecorder(width, height, bitRate, frameRate,
+                frameInterval, isRecording, surfaceCallback, { frame, timeStamp, bufferInfo, data ->
+            val byteArray = data.genData()
+            if (cango) {
+                ServerHeart.dataScope.launch {
+                    ServerHeart.send(TcpCmd.ReplyFrame(byteArray, 0, timeStamp))
+                }
+            }
+
+
+        }, {
+            videoFormats.add(it)
+        })
+        recorderThread.execute(videoRecorder)
+
     }
 
-    private fun NV21toJPEG(nv21: ByteArray, width: Int, height: Int): ByteArray {
-        val out = ByteArrayOutputStream()
-        val yuv = YuvImage(nv21, ImageFormat.NV21, width, height, null)
-        yuv.compressToJpeg(Rect(0, 0, width, height), 30, out)
-        return out.toByteArray()
-    }
+
 
     var time = System.currentTimeMillis()
     var count = 0
 
 
-    private inner class ImageSaver(var reader: ImageReader) : Runnable {
-        override fun run() {
-            ServerHeart.dataScope.launch {
-                var image: Image? = null
-                try {
-                    image = reader.acquireLatestImage()
-                } catch (e: Exception) {
-
-                }
-
-                if (image == null) {
-                    return@launch
-                }
-                withContext(Dispatchers.Main) {
-                    count++
-                    if (count >= 10) {
-                        val x = (System.currentTimeMillis() - time).toFloat() / 1000f
-//                        binding.fps.text = (10f / x).toInt().toString() + " fps"
-                        time = System.currentTimeMillis()
-                        count = 0
-                    }
-                }
-                try {
-                    val data = NV21toJPEG(
-                        YUV_420_888toNV21(image),
-                        image.width, image.height
-                    );
-
-
-                    imgArray.add(data.clone())
-
-                } catch (e: Exception) {
-
-                }
-
-
-
-
-                image.close()
-
-            }
-        }
-    }
 
 
     private fun updatePreview() {
@@ -326,7 +256,7 @@ class ServerFragment : Fragment() {
         }
 
         mCameraDevice!!.close()
-        mImageReader.close()
+
         stopBackgroundThread()
     }
 

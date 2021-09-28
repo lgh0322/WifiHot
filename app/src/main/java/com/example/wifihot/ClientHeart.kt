@@ -38,7 +38,7 @@ object ClientHeart {
 
                 // need content length
                 val len = toUInt(bytes.copyOfRange(i + 6, i + 10))
-                if(len<0){
+                if (len < 0) {
                     continue@loop
                 }
                 if (i + 11 + len > bytes.size) {
@@ -49,10 +49,10 @@ object ClientHeart {
                 if (temp.last() == CRCUtils.calCRC8(temp)) {
                     receive?.onResponseReceived(Response(temp), mySocket)
                     val tempBytes: ByteArray? =
-                        if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
-                            i + 11 + len,
-                            bytes.size
-                        )
+                            if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                                    i + 11 + len,
+                                    bytes.size
+                            )
 
                     bytes = tempBytes
                     con = true
@@ -94,18 +94,18 @@ object ClientHeart {
                     e.printStackTrace()
                     try {
                         mySocket.socket.close()
-                    }catch (ert:java.lang.Exception){
+                    } catch (ert: java.lang.Exception) {
 
                     }
-                    do{
+                    do {
                         try {
                             delay(1000)
-                            mySocket = MySocket(Socket(NetInfo.server,NetInfo.port))
+                            mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
                             break;
-                        }catch (ew:Exception){
+                        } catch (ew: Exception) {
 
                         }
-                    }while (true)
+                    } while (true)
 
 
                 }

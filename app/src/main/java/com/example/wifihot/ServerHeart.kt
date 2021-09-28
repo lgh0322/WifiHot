@@ -1,15 +1,12 @@
 package com.example.wifihot
 
-import android.util.Log
 import com.example.wifihot.utiles.CRCUtils
 import com.example.wifihot.utiles.add
 import com.example.wifihot.utiles.toUInt
-import com.example.wifihot.utiles.unsigned
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.net.ServerSocket
 import java.net.Socket
 import kotlin.experimental.inv
 
@@ -37,14 +34,13 @@ object ServerHeart {
     }
 
 
-
-    fun poccessLinkData(mySocket: MySocket):ByteArray? {
+    fun poccessLinkData(mySocket: MySocket): ByteArray? {
         var bytes = mySocket.pool
-        while (true){
+        while (true) {
             if (bytes == null || bytes.size < 11) {
                 break
             }
-            var con=false
+            var con = false
 
             loop@ for (i in 0 until bytes!!.size - 10) {
                 if (bytes!![i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
@@ -59,23 +55,23 @@ object ServerHeart {
 
                 val temp: ByteArray = bytes.copyOfRange(i, i + 11 + len)
                 if (temp.last() == CRCUtils.calCRC8(temp)) {
-                    receiveYes?.onResponseReceived(Response(temp),mySocket)
+                    receiveYes?.onResponseReceived(Response(temp), mySocket)
                     val tempBytes: ByteArray? =
-                        if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
-                            i + 11 + len,
-                            bytes.size
-                        )
+                            if (i + 11 + len == bytes.size) null else bytes.copyOfRange(
+                                    i + 11 + len,
+                                    bytes.size
+                            )
 
-                    bytes=tempBytes
-                    con=true
+                    bytes = tempBytes
+                    con = true
                     break@loop
                 }
 
             }
-            if(!con){
+            if (!con) {
                 return bytes
-            }else{
-                con=false
+            } else {
+                con = false
             }
 
         }
@@ -85,18 +81,18 @@ object ServerHeart {
     fun startAccept() {
 
 
-
-                startRead()
+        startRead()
 
 
     }
 
-    var timex=0L
+    var timex = 0L
+    lateinit var mySocket: MySocket
 
 
     fun startRead() {
         dataScope.launch {
-            var mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
+            mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
             var live = true
             while (live) {
                 try {
@@ -104,16 +100,16 @@ object ServerHeart {
                     val input = mySocket.socket.getInputStream()
                     val byteSize = input.read(buffer)
                     if (byteSize > 0) {
-                        timex=System.currentTimeMillis()
-                        val bytes=buffer.copyOfRange(0,byteSize)
-                        mySocket.pool=add(mySocket.pool,bytes)
-                        mySocket.pool= poccessLinkData(mySocket)
+                        timex = System.currentTimeMillis()
+                        val bytes = buffer.copyOfRange(0, byteSize)
+                        mySocket.pool = add(mySocket.pool, bytes)
+                        mySocket.pool = poccessLinkData(mySocket)
                     }
                 } catch (e: Exception) {
 
                     try {
                         mySocket.socket.close()
-                    }catch (ert:java.lang.Exception){
+                    } catch (ert: java.lang.Exception) {
 
                     }
 
@@ -122,10 +118,10 @@ object ServerHeart {
                             delay(1000)
                             mySocket = MySocket(Socket(NetInfo.server, NetInfo.port))
                             break;
-                        }catch (qwe:java.lang.Exception){
+                        } catch (qwe: java.lang.Exception) {
 
                         }
-                    }while (true)
+                    } while (true)
 
                 }
                 delay(5)
@@ -135,7 +131,7 @@ object ServerHeart {
     }
 
 
-    fun send(b: ByteArray, mySocket: MySocket) {
+    fun send(b: ByteArray) {
         val output = mySocket.socket.getOutputStream()
         output.write(b)
         output.flush()
@@ -153,8 +149,8 @@ object ServerHeart {
 
 }
 
-fun  ArrayList<Byte>.addAll(elements: ByteArray) {
-    for(k in elements){
+fun ArrayList<Byte>.addAll(elements: ByteArray) {
+    for (k in elements) {
         this.add(k)
     }
 }
