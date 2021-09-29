@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.os.Process
 import android.util.Log
+import com.vaca.fuckh264.record.VideoRecorder
 import com.vaca.fuckh264.record.dequeueValidInputBuffer
 import com.vaca.fuckh264.record.handleOutputBuffer
 import com.vaca.fuckh264.record.toS
@@ -73,6 +74,16 @@ class AudioEncoder(
             codec.handleOutputBuffer(bufferInfo, 1000, {
                 // audio format changed
                 if (!isFormatChanged) {
+
+                   val xx= codec.getOutputFormat().getByteBuffer("csd-0")
+                    if (xx != null) {
+                        val ga = ByteArray(xx.remaining()) {
+                            0.toByte()
+                        }
+                        xx.get(ga, 0, ga.size)
+                       Log.e("qwert",byteArray2String(ga))
+
+                    }
                     formatChanged.invoke(codec.outputFormat)
                     isFormatChanged = true
                 }
@@ -90,6 +101,16 @@ class AudioEncoder(
             })
         }
         codec.release()
+    }
+
+
+    fun byteArray2String(byteArray: ByteArray):String {
+        var fuc=""
+        for (b in byteArray) {
+            val st = String.format("%02X", b)
+            fuc+=("$st  ");
+        }
+        return fuc
     }
 
 } 

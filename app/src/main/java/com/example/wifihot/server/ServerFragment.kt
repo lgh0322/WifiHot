@@ -28,6 +28,7 @@ import java.util.concurrent.Executors
 class ServerFragment : Fragment() {
     lateinit var binding: FragmentServerBinding
 
+    val aacDecoderUtil=AACDecoderUtil()
 
     lateinit var wifiManager: WifiManager
     private val PORT = 9999
@@ -71,6 +72,7 @@ class ServerFragment : Fragment() {
         wifiManager = MainApplication.application.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
 
 
+        aacDecoderUtil.start()
 
 
         binding = FragmentServerBinding.inflate(inflater, container, false)
@@ -88,7 +90,7 @@ class ServerFragment : Fragment() {
             val data = ByteArray(byteBuffer.remaining())
             byteBuffer.get(data, 0, data.size)
             val audioPacket = AudioPacket(data, data.size, bufferInfo.copy())
-
+                aacDecoderUtil.decode(data,0,data.size,bufferInfo.presentationTimeUs)
 
         },{
             // 得到输出的audio format
