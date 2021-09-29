@@ -121,6 +121,7 @@ fun createAACFormat(
         setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
         // 默认使用LC底规格
         setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+        setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 65536)
     }
 }
 

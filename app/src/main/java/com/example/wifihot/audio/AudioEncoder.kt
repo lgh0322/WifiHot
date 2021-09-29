@@ -57,7 +57,7 @@ class AudioEncoder(
             val (id, inputBuffer) = codec.dequeueValidInputBuffer(1000)
             inputBuffer?.let {
                 val size = bytes.size
-                Log.e("fuckyou","fufufu    $size")
+                Log.e("fuckyou","fufufu    $size             ${it.capacity()}")
                 totalBytes += size
                 it.clear()
                 it.put(bytes)
