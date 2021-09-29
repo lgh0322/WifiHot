@@ -45,7 +45,7 @@ public class AACDecoderUtil {
      */
     private boolean prepare() {
         // 初始化AudioTrack
-        mPlayer = new MyAudioTrack(KEY_SAMPLE_RATE, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+        mPlayer = new MyAudioTrack(KEY_SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
         mPlayer.init();
         try {
             //需要解码数据的类型
