@@ -47,7 +47,7 @@ public class ReadAACFileThread extends Thread {
         super.run();
         File file = new File(filePath);
         //判断文件是否存在
-        if (file.exists()) {
+      /*  if (file.exists()) {
             try {
                 FileInputStream fis = new FileInputStream(file);
                 //保存完整数据帧
@@ -110,7 +110,7 @@ public class ReadAACFileThread extends Thread {
             Log.e("ReadAACFileThread", "AllCount:" + count + "Error Count : " + audioUtil.getCount());
         } else {
             Log.e("ReadH264FileThread", "File not found");
-        }
+        }*/
         audioUtil.stop();
     }
 
