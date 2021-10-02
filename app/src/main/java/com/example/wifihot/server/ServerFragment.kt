@@ -97,7 +97,7 @@ class ServerFragment : Fragment() {
                 if(framex>=100){
                     framex=0
                     val gg=(System.currentTimeMillis()-timex).toFloat()/1000f
-                    Log.e("gaga",(data.size*(100f/(gg)).toInt()).toString())
+                    Log.e("gaga",(/*data.size**/(100f/(gg)).toInt()).toString())
                     timex=System.currentTimeMillis()
                 }
 
