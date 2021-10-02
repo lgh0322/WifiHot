@@ -110,7 +110,7 @@ fun createAMRFormat(
             MediaFormat.MIMETYPE_AUDIO_AMR_WB, 8000,
            1
     ).apply {
-        setInteger(MediaFormat.KEY_BIT_RATE, 8000)
+        setInteger(MediaFormat.KEY_BIT_RATE, 23850)
         setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096)
     }
 }

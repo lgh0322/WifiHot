@@ -14,7 +14,7 @@ import com.example.wifihot.audio.AudioOps
  *
  * @param use an external array to judge if a stop is required
  * */
-class AudioRecorder(private val sampleRate: Int = 44100,
+class AudioRecorder(private val sampleRate: Int = 16000,
                     private val isRecoding: List<Any>,
                     private val dataCallBack: (size: Int, data: ByteArray) -> Unit) : Runnable {
 

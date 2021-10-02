@@ -18,7 +18,7 @@ public class AACDecoderUtil {
     //声道数
     private static final int KEY_CHANNEL_COUNT = 1;
     //采样率
-    private static final int KEY_SAMPLE_RATE = 44100;
+    private static final int KEY_SAMPLE_RATE = 16000;
     //用于播放解码后的pcm
     private MyAudioTrack mPlayer;
     //解码器
@@ -60,7 +60,7 @@ public class AACDecoderUtil {
             //采样率
             mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, KEY_SAMPLE_RATE);
             //比特率
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 8000);
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 23850);
 
             mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,4096);
             //用来标记AAC是否有adts头，1->有

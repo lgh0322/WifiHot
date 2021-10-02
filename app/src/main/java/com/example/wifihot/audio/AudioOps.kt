@@ -12,7 +12,7 @@ import android.util.Log
  *@Since:2019-05-06
  *@ChangeList:
  */
-class AudioOps(private val sampleRate: Int = 44100,
+class AudioOps(private val sampleRate: Int = 16000,
                private val channel: Int = AudioFormat.CHANNEL_IN_MONO) {
     private val TAG = "AudioOps"
 
