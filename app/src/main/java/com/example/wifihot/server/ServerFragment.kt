@@ -19,9 +19,12 @@ import androidx.fragment.app.Fragment
 import com.example.wifihot.*
 import com.example.wifihot.databinding.FragmentServerBinding
 import com.example.wifihot.audio.AudioEncoder
+import com.example.wifihot.utiles.PathUtil
+import com.example.wifihot.utiles.add
 import com.jadyn.mediakit.audio.AudioPacket
 import com.jadyn.mediakit.audio.AudioRecorder
 import com.vaca.fuckh264.record.*
+import java.io.File
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.Executors
 
@@ -62,6 +65,7 @@ class ServerFragment : Fragment() {
     }
     val audioFormats = safeList<MediaFormat>()
 
+    var pool:ByteArray?=null
 
     override fun onCreateView(
             inflater: LayoutInflater,
@@ -74,7 +78,7 @@ class ServerFragment : Fragment() {
 
         aacDecoderUtil.start()
 
-
+var fuck=0
         binding = FragmentServerBinding.inflate(inflater, container, false)
 
         isRecording.add(1)
@@ -91,6 +95,16 @@ class ServerFragment : Fragment() {
             byteBuffer.get(data, 0, data.size)
             val audioPacket = AudioPacket(data, data.size, bufferInfo.copy())
                 Log.e("fuckyou",byteArray2String(data))
+              if(fuck==0){
+                  pool=add(pool,data)
+                  if(pool!!.size>20000){
+                      pool= add("#!AMR-WB\n".toByteArray(),pool!!)
+                      File(PathUtil.getPathX("fuck.amr")).writeBytes(pool!!)
+                      fuck=1
+                      Log.e("asdf","qwer")
+                  }
+              }
+
                 aacDecoderUtil.decode(data,0,data.size,bufferInfo.presentationTimeUs)
 
                 framex++
