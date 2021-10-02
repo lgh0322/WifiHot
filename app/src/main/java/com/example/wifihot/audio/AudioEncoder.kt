@@ -37,7 +37,7 @@ class AudioEncoder(
     override fun run() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
 
-        val codec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AMR_NB)
+        val codec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AMR_WB)
         codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         codec.start()
 

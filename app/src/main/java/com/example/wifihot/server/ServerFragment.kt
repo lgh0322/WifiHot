@@ -111,6 +111,7 @@ class ServerFragment : Fragment() {
 
     var cango = false
 
+    var ga=0
 
     var framex=0
     var timex=System.currentTimeMillis()

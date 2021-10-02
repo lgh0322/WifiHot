@@ -107,7 +107,7 @@ fun createAMRFormat(
 
 ): MediaFormat {
     return MediaFormat.createAudioFormat(
-            MediaFormat.MIMETYPE_AUDIO_AMR_NB, 8000,
+            MediaFormat.MIMETYPE_AUDIO_AMR_WB, 8000,
            1
     ).apply {
         setInteger(MediaFormat.KEY_BIT_RATE, 8000)

@@ -48,7 +48,7 @@ public class AACDecoderUtil {
         mPlayer.init();
         try {
             //需要解码数据的类型
-            String mine = MediaFormat.MIMETYPE_AUDIO_AMR_NB;
+            String mine = MediaFormat.MIMETYPE_AUDIO_AMR_WB;
             //初始化解码器
             mDecoder = MediaCodec.createDecoderByType(mine);
             //MediaFormat用于描述音视频数据的相关参数
@@ -60,9 +60,9 @@ public class AACDecoderUtil {
             //采样率
             mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, KEY_SAMPLE_RATE);
             //比特率
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 7950);
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 8000);
 
-            mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,65000);
+            mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,4096);
             //用来标记AAC是否有adts头，1->有
 //            mediaFormat.setInteger(MediaFormat.KEY_IS_ADTS, 0);
             //用来标记aac的类型
