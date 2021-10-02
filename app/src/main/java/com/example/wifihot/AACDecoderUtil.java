@@ -2,7 +2,6 @@ package com.example.wifihot;
 
 import android.media.AudioFormat;
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.util.Log;
 
@@ -49,7 +48,7 @@ public class AACDecoderUtil {
         mPlayer.init();
         try {
             //需要解码数据的类型
-            String mine = MediaFormat.MIMETYPE_AUDIO_AAC;
+            String mine = MediaFormat.MIMETYPE_AUDIO_AMR_NB;
             //初始化解码器
             mDecoder = MediaCodec.createDecoderByType(mine);
             //MediaFormat用于描述音视频数据的相关参数
@@ -61,17 +60,17 @@ public class AACDecoderUtil {
             //采样率
             mediaFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, KEY_SAMPLE_RATE);
             //比特率
-            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 128000);
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 7950);
 
             mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE,65000);
             //用来标记AAC是否有adts头，1->有
-            mediaFormat.setInteger(MediaFormat.KEY_IS_ADTS, 0);
+//            mediaFormat.setInteger(MediaFormat.KEY_IS_ADTS, 0);
             //用来标记aac的类型
-            mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+
             //ByteBuffer key（暂时不了解该参数的含义，但必须设置）
-            byte[] data = new byte[]{(byte) 0x12, (byte) 0x08};
-            ByteBuffer csd_0 = ByteBuffer.wrap(data);
-            mediaFormat.setByteBuffer("csd-0", csd_0);
+//            byte[] data = new byte[]{(byte) 0x12, (byte) 0x08};
+//            ByteBuffer csd_0 = ByteBuffer.wrap(data);
+//            mediaFormat.setByteBuffer("csd-0", csd_0);
             //解码器配置
             mDecoder.configure(mediaFormat, null, null, 0);
         } catch (IOException e) {

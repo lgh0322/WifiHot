@@ -85,12 +85,20 @@ class ServerFragment : Fragment() {
             audioQueue.offer(data)
         }))
         // 执行音频编码，将PCM数据编码为AAC数据
-        recorderThread.execute(AudioEncoder(isRecording, createAACFormat(128000),
+        recorderThread.execute(AudioEncoder(isRecording, createAMRFormat(),
                 audioQueue, { byteBuffer, bufferInfo ->
             val data = ByteArray(byteBuffer.remaining())
             byteBuffer.get(data, 0, data.size)
             val audioPacket = AudioPacket(data, data.size, bufferInfo.copy())
+                Log.e("fuckyou",byteArray2String(data))
                 aacDecoderUtil.decode(data,0,data.size,bufferInfo.presentationTimeUs)
+                framex++
+                if(framex>=1000){
+                    framex=0
+                    val gg=(System.currentTimeMillis()-timex).toFloat()/1000f
+                    Log.e("gaga",(1000f/(gg)).toInt().toString())
+                    timex=System.currentTimeMillis()
+                }
 
         },{
             // 得到输出的audio format
@@ -104,6 +112,8 @@ class ServerFragment : Fragment() {
     var cango = false
 
 
+    var framex=0
+    var timex=System.currentTimeMillis()
 
 
     private val isRecording = safeList<Int>()
@@ -123,6 +133,14 @@ class ServerFragment : Fragment() {
 
 
 
+    fun byteArray2String(byteArray: ByteArray):String {
+        var fuc=""
+        for (b in byteArray) {
+            val st = String.format("%02X", b)
+            fuc+=("$st  ");
+        }
+        return fuc
+    }
 
 
 

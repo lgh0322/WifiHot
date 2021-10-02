@@ -102,26 +102,16 @@ fun createVideoFormat(
             }
 }
 
-/**
- * MPEG-4 AAC LC 低复杂度规格（Low Complexity），现在的手机比较常见的 MP4 文件中的音频部份就包括了该规格音频文件
- * MPEG-4 AAC Main 主规格
- * MPEG-4 AAC SSR 可变采样率规格（Scaleable Sample Rate）
- * MPEG-4 AAC LTP 长时期预测规格（Long Term Predicition）
- * MPEG-4 AAC LD 低延迟规格（Low Delay）
- * MPEG-4 AAC HE 高效率规格（High Efficiency）
- * */
-fun createAACFormat(
-        bitRate: Int = 128000, sampleRate: Int = 44100,
-        @IntRange(from = 1, to = 2) channel: Int = 1
+
+fun createAMRFormat(
+
 ): MediaFormat {
     return MediaFormat.createAudioFormat(
-            MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate,
-            channel
+            MediaFormat.MIMETYPE_AUDIO_AMR_NB, 8000,
+           1
     ).apply {
-        setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
-        // 默认使用LC底规格
-        setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
-        setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 65536)
+        setInteger(MediaFormat.KEY_BIT_RATE, 8000)
+        setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096)
     }
 }
 

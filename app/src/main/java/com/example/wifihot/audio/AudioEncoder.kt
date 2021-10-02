@@ -37,7 +37,7 @@ class AudioEncoder(
     override fun run() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
 
-        val codec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC)
+        val codec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AMR_NB)
         codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
         codec.start()
 
@@ -75,15 +75,15 @@ class AudioEncoder(
                 // audio format changed
                 if (!isFormatChanged) {
 
-                   val xx= codec.getOutputFormat().getByteBuffer("csd-0")
-                    if (xx != null) {
-                        val ga = ByteArray(xx.remaining()) {
-                            0.toByte()
-                        }
-                        xx.get(ga, 0, ga.size)
-                       Log.e("qwert",byteArray2String(ga))
-
-                    }
+//                   val xx= codec.getOutputFormat().getByteBuffer("csd-0")
+//                    if (xx != null) {
+//                        val ga = ByteArray(xx.remaining()) {
+//                            0.toByte()
+//                        }
+//                        xx.get(ga, 0, ga.size)
+//                       Log.e("qwert",byteArray2String(ga))
+//
+//                    }
                     formatChanged.invoke(codec.outputFormat)
                     isFormatChanged = true
                 }
