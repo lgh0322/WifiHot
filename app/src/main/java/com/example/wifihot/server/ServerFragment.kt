@@ -92,11 +92,12 @@ class ServerFragment : Fragment() {
             val audioPacket = AudioPacket(data, data.size, bufferInfo.copy())
                 Log.e("fuckyou",byteArray2String(data))
                 aacDecoderUtil.decode(data,0,data.size,bufferInfo.presentationTimeUs)
+
                 framex++
-                if(framex>=1000){
+                if(framex>=100){
                     framex=0
                     val gg=(System.currentTimeMillis()-timex).toFloat()/1000f
-                    Log.e("gaga",(1000f/(gg)).toInt().toString())
+                    Log.e("gaga",(data.size*(100f/(gg)).toInt()).toString())
                     timex=System.currentTimeMillis()
                 }
 
