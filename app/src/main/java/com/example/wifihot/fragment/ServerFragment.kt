@@ -106,8 +106,8 @@ class ServerFragment : Fragment() {
         }
 
 
-        var vFlip=false
-        var hFlip=false
+        var vFlip=true
+        var hFlip=true
         binding.vFlip.setOnClickListener {
             vFlip=!vFlip
             if(vFlip){
