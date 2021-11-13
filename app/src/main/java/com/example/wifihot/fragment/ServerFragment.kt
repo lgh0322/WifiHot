@@ -76,6 +76,17 @@ class ServerFragment : Fragment() {
             BleServer.send(TcpCmd.carRun( b))
         }
     }
+    val handler=Handler()
+
+    val run=object :Runnable{
+        override fun run() {
+          handler.postDelayed(this,30)
+            MainScope().launch {
+                binding.time.text=System.currentTimeMillis().toString()
+            }
+        }
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -86,6 +97,8 @@ class ServerFragment : Fragment() {
         wifiManager = requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
 
 
+
+        handler.postDelayed(run,30)
         BleServer.dataScope.launch {
             BleServer.startRead()
         }
