@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.SeekBar
 import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import com.example.wifihot.BleServer
@@ -106,6 +107,8 @@ class ServerFragment : Fragment() {
         list.add("9")
         list.add("10")
         list.add("11")
+        list.add("12")
+        list.add("13")
         val adapter=ArrayAdapter<String>(requireContext(),android.R.layout.simple_spinner_item,list)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
@@ -129,6 +132,25 @@ class ServerFragment : Fragment() {
 
         }
 
+        binding.seekBar.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                binding.quality.text="质量 ${progress}"
+                send(TcpCmd.quality(progress))
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        binding.led.setOnClickListener {
+            send(TcpCmd.light(binding.led.isChecked))
+        }
         BleServer.dataScope.launch {
             BleServer.startRead()
         }
