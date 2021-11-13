@@ -123,6 +123,69 @@ public class TcpCmd {
         return cmd;
     }
 
+    public static byte[] contrast(int direction) {
+        int len = 1;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) 0xf9;
+        cmd[2] = (byte) ~0xf9;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        temp = intToByteArray(len);
+        cmd[6] = temp[0];
+        cmd[7] = temp[1];
+        cmd[8] = temp[2];
+        cmd[9] = temp[3];
+        cmd[10]=(byte)direction;
+        cmd[10+len] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] brightness(int direction) {
+        int len = 1;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) 0xfa;
+        cmd[2] = (byte) ~0xfa;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        temp = intToByteArray(len);
+        cmd[6] = temp[0];
+        cmd[7] = temp[1];
+        cmd[8] = temp[2];
+        cmd[9] = temp[3];
+        cmd[10]=(byte)direction;
+        cmd[10+len] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] saturation(int direction) {
+        int len = 1;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) 0xfb;
+        cmd[2] = (byte) ~0xfb;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        temp = intToByteArray(len);
+        cmd[6] = temp[0];
+        cmd[7] = temp[1];
+        cmd[8] = temp[2];
+        cmd[9] = temp[3];
+        cmd[10]=(byte)direction;
+        cmd[10+len] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
 
     public static byte[] light(boolean x) {
         int len = 1;

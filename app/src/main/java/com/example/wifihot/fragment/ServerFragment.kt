@@ -148,6 +148,54 @@ class ServerFragment : Fragment() {
 
         })
 
+        binding.seekBarContra.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                binding.contraText.text="对比 ${progress}"
+                send(TcpCmd.contrast(progress))
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        binding.seekBarBri.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                binding.briText.text="亮度 ${progress}"
+                send(TcpCmd.brightness(progress))
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
+        binding.seekBarSatu.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                binding.satuText.text="饱和 ${progress}"
+                send(TcpCmd.saturation(progress))
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
         binding.led.setOnClickListener {
             send(TcpCmd.light(binding.led.isChecked))
         }

@@ -91,7 +91,77 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:max="50"
+                    android:min="10"
                     android:progress="15"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:paddingTop="5dp"
+                    android:id="@+id/contra_text"
+                    android:text="对比度 1"
+                    android:textSize="5sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <SeekBar
+                    android:layout_marginStart="5dp"
+                    android:id="@+id/seekBar_contra"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="5"
+                    android:min="1"
+                    android:progress="1"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:paddingTop="5dp"
+                    android:id="@+id/bri_text"
+                    android:text="亮度 8"
+                    android:textSize="5sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <SeekBar
+                    android:layout_marginStart="5dp"
+                    android:id="@+id/seekBar_bri"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="5"
+                    android:min="1"
+                    android:progress="2"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:paddingTop="5dp"
+                    android:id="@+id/satu_text"
+                    android:text="饱和度 8"
+                    android:textSize="5sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <SeekBar
+                    android:layout_marginStart="5dp"
+                    android:id="@+id/seekBar_satu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="5"
+                    android:min="1"
+                    android:progress="1"
                     />
 
             </LinearLayout>
