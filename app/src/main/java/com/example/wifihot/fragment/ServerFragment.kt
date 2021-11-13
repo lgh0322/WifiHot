@@ -31,6 +31,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.lang.Exception
 import java.lang.Runnable
 import java.net.ServerSocket
 import java.net.Socket
@@ -47,45 +48,37 @@ class ServerFragment : Fragment() {
 
     var pool:ByteArray?=null
 
-    var carleft=1500
-    var carright=1500
-
-    var carRunbase=1500
-    var carTurnbase=0
-
-
-    fun calcControl(){
-        carleft=carRunbase+carTurnbase
-        carright=carRunbase-carTurnbase
-
-
-        carright=3000-carright
-
-    }
-
-    fun controlCar(){
-        BleServer.dataScope.launch {
-            calcControl()
-            val b=ByteArray(4){
-                0
-            }
-            b[0]=carleft.and(0xff).toByte()
-            b[1]=carleft.shr(8).and(0xff).toByte()
-            b[2]=carright.and(0xff).toByte()
-            b[3]=carright.shr(8).and(0xff).toByte()
-            BleServer.send(TcpCmd.carRun( b))
-        }
-    }
-    val handler=Handler()
-
-    val run=object :Runnable{
+    var fpsNum=0
+    inner class Fps() : TimerTask() {
         override fun run() {
-          handler.postDelayed(this,30)
             MainScope().launch {
-                binding.time.text=System.currentTimeMillis().toString()
+                binding.fps.text="帧率： ${fpsNum} fps"
+                fpsNum=0
             }
-        }
 
+        }
+    }
+
+    var fps:Fps?=null
+
+
+    override fun onStart() {
+        try {
+            fps=Fps()
+            Timer().schedule(fps!!, Date(),1000)
+        }catch (e:Exception){
+
+        }
+        super.onStart()
+    }
+
+    override fun onStop() {
+        try {
+            fps?.cancel()
+        }catch (e:Exception){
+
+        }
+        super.onStop()
     }
 
     override fun onCreateView(
@@ -98,7 +91,6 @@ class ServerFragment : Fragment() {
 
 
 
-        handler.postDelayed(run,30)
         BleServer.dataScope.launch {
             BleServer.startRead()
         }
@@ -114,39 +106,8 @@ class ServerFragment : Fragment() {
         }
 
 
-        binding.left.setOnJoystickMoveListener(object :JoystickView.OnJoystickMoveListener{
-            override fun onValueChanged(angle: Int, power: Int, direction: Int) {
-                val a1=angle.toDouble()/360.0*2.0*Math.PI
-                val k1=(Math.sin(a1))*power.toDouble()/200.0*500.0+1500.0
-                val k2=(Math.cos(a1))*power.toDouble()/200.0*500.0+1500.0
-                val k11=k1.toInt()
-                val k22=k2.toInt()
-                Log.e("fuck1",k22.toString())
-                carRunbase=k22
-                controlCar()
-            }
-        },100)
-
-        binding.right.setOnJoystickMoveListener(object :JoystickView.OnJoystickMoveListener{
-            override fun onValueChanged(angle: Int, power: Int, direction: Int) {
-                val a1=angle.toDouble()/360.0*2.0*Math.PI
-                val k1=(Math.sin(a1))*power.toDouble()
-                val k2=(Math.cos(a1))*power.toDouble()
-                val k11=k1.toInt()
-                val k22=k2.toInt()
-                Log.e("fuck1",k11.toString())
-                carTurnbase=k11
-                controlCar()
-            }
-
-        },100)
 
 
-        binding.ota.setOnClickListener {
-            BleServer.dataScope.launch {
-                BleServer.send(TcpCmd.carOTA())
-            }
-        }
 
         return binding.root
     }
@@ -164,7 +125,7 @@ class ServerFragment : Fragment() {
             var con=false
 
             loop@ for (i in 0 until bytes!!.size - 10) {
-                if (bytes!![i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
+                if (bytes[i] != 0xA5.toByte() || bytes[i + 1] != bytes[i + 2].inv()) {
                     continue@loop
                 }
 
@@ -204,7 +165,9 @@ class ServerFragment : Fragment() {
 
     val loc= Mutex()
 
-    fun onResponseReceived(x:Response){
+
+
+    private fun onResponseReceived(x:Response){
         when(x.cmd){
             TcpCmd.CMD_READ_FILE_DATA->{
                 MainScope().launch {
@@ -212,13 +175,11 @@ class ServerFragment : Fragment() {
                         val bb=x.content.clone()
                             val fg = BitmapFactory.decodeStream(ByteArrayInputStream(bb))
                             if(fg!=null){
+                                fpsNum++
                                 binding.img.setImageBitmap(fg)
+                                binding.resu.text="分辨率：${fg.width}*${fg.height}"
                             }
                     }
-
-//                    dataScope.launch {
-//                        BleServer.send("fuck".toByteArray())
-//                    }
 
                 }
             }
