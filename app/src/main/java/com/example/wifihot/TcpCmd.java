@@ -59,6 +59,81 @@ public class TcpCmd {
         return cmd;
     }
 
+    public static byte[] vFalse() {
+        int len = 0;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) 0xf6;
+        cmd[2] = (byte) ~0xf6;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        cmd[6] = (byte) 0x00;
+        cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
+        cmd[10] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] vTrue() {
+        int len = 0;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) 0xf7;
+        cmd[2] = (byte) ~0xf7;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        cmd[6] = (byte) 0x00;
+        cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
+        cmd[10] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] hFalse() {
+        int len = 0;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) 0xf8;
+        cmd[2] = (byte) ~0xf8;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        cmd[6] = (byte) 0x00;
+        cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
+        cmd[10] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
+
+    public static byte[] hTrue() {
+        int len = 0;
+        byte[] cmd = new byte[11 + len];
+        cmd[0] = (byte) 0xA5;
+        cmd[1] = (byte) 0xf9;
+        cmd[2] = (byte) ~0xf9;
+        cmd[3]=(byte)0;
+        byte[] temp = shortToByteArray(seqNo);
+        cmd[4] = temp[0];
+        cmd[5] = temp[1];
+        cmd[6] = (byte) 0x00;
+        cmd[7] = (byte) 0x00;
+        cmd[8] = (byte) 0x00;
+        cmd[9] = (byte) 0x00;
+        cmd[10] = calCRC8(cmd);
+        addNo();
+        return cmd;
+    }
     public static byte[] readFileStart() {
         int len = 0;
         byte[] cmd = new byte[11 + len];

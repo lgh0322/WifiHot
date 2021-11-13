@@ -106,6 +106,27 @@ class ServerFragment : Fragment() {
         }
 
 
+        var vFlip=false
+        var hFlip=false
+        binding.vFlip.setOnClickListener {
+            vFlip=!vFlip
+            if(vFlip){
+               BleServer.send( TcpCmd.vFalse())
+            }else{
+                BleServer.send( TcpCmd.vTrue())
+            }
+
+        }
+
+        binding.hFlip.setOnClickListener {
+            hFlip=!hFlip
+            if(hFlip){
+                BleServer.send( TcpCmd.hFalse())
+            }else{
+                BleServer.send( TcpCmd.hTrue())
+            }
+
+        }
 
 
 
