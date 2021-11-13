@@ -14,9 +14,13 @@ import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import com.example.wifihot.BleServer
 import com.example.wifihot.BleServer.dataScope
+import com.example.wifihot.BleServer.send
 import com.example.wifihot.BleServer.socket
 import com.example.wifihot.Response
 import com.example.wifihot.TcpCmd
@@ -41,7 +45,7 @@ import kotlin.experimental.inv
 
 class ServerFragment : Fragment() {
     lateinit var binding: FragmentServerBinding
-
+    private val list: ArrayList<String> = ArrayList()
 
     lateinit var wifiManager: WifiManager
     private val PORT = 9999
@@ -86,16 +90,49 @@ class ServerFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        binding = FragmentServerBinding.inflate(inflater, container, false)
 
         wifiManager = requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
 
+        list.add("0")
+        list.add("1")
+        list.add("2")
+        list.add("3")
+        list.add("4")
+        list.add("5")
+        list.add("6")
+        list.add("7")
+        list.add("8")
+        list.add("9")
+        list.add("10")
+        list.add("11")
+        val adapter=ArrayAdapter<String>(requireContext(),android.R.layout.simple_spinner_item,list)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
+            binding.spinner.adapter=adapter
+
+
+        binding.spinner.onItemSelectedListener=object: AdapterView.OnItemSelectedListener{
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+               Log.e("fuck","fuckitem ${position}")
+                send(TcpCmd.frameSize(position))
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+
+        }
 
         BleServer.dataScope.launch {
             BleServer.startRead()
         }
 
-        binding = FragmentServerBinding.inflate(inflater, container, false)
 
         BleServer.receive = object : BleServer.Receive {
             override fun tcpReceive(byteArray: ByteArray) {
@@ -198,7 +235,7 @@ class ServerFragment : Fragment() {
                             if(fg!=null){
                                 fpsNum++
                                 binding.img.setImageBitmap(fg)
-                                binding.resu.text="分辨率：${fg.width}*${fg.height}"
+                                binding.resu.text="分辨率：${fg.width}*${fg.height}  \n${bb.size}"
                             }
                     }
 
