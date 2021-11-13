@@ -111,9 +111,9 @@ class ServerFragment : Fragment() {
         binding.vFlip.setOnClickListener {
             vFlip=!vFlip
             if(vFlip){
-               BleServer.send( TcpCmd.vFalse())
+               BleServer.send( TcpCmd.vFalse(1))
             }else{
-                BleServer.send( TcpCmd.vTrue())
+                BleServer.send( TcpCmd.vFalse(2))
             }
 
         }
@@ -121,9 +121,9 @@ class ServerFragment : Fragment() {
         binding.hFlip.setOnClickListener {
             hFlip=!hFlip
             if(hFlip){
-                BleServer.send( TcpCmd.hFalse())
+                BleServer.send( TcpCmd.vFalse(3))
             }else{
-                BleServer.send( TcpCmd.hTrue())
+                BleServer.send( TcpCmd.vFalse(4))
             }
 
         }
