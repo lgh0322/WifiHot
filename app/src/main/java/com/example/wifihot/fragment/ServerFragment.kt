@@ -196,8 +196,49 @@ class ServerFragment : Fragment() {
 
         })
 
+        binding.seekBarWbMode.setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                binding.wbModeText.text="wbmode ${progress}"
+                send(TcpCmd.wbMode(progress))
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+        })
+
         binding.led.setOnClickListener {
             send(TcpCmd.light(binding.led.isChecked))
+        }
+
+        binding.awc.setOnClickListener {
+            send(TcpCmd.awc(binding.awc.isChecked))
+        }
+
+        binding.aec.setOnClickListener {
+            send(TcpCmd.aec2(binding.aec.isChecked))
+        }
+
+        binding.agc.setOnClickListener {
+            send(TcpCmd.agc(binding.agc.isChecked))
+        }
+        binding.gammar.setOnClickListener {
+            send(TcpCmd.gamma(binding.gammar.isChecked))
+        }
+
+        binding.awbGain.setOnClickListener {
+            val xx=binding.awbGain.isChecked
+            send(TcpCmd.awbGain(xx))
+            if(xx){
+                binding.wbModeTotal.visibility=View.VISIBLE
+            }else{
+                binding.wbModeTotal.visibility=View.GONE
+            }
         }
         BleServer.dataScope.launch {
             BleServer.startRead()

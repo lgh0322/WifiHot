@@ -150,7 +150,7 @@
                 <TextView
                     android:paddingTop="5dp"
                     android:id="@+id/satu_text"
-                    android:text="饱和度 8"
+                    android:text="饱和度 "
                     android:textSize="5sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
@@ -169,26 +169,157 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:orientation="horizontal"
-                android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:layout_height="wrap_content">
+                android:layout_height="30dp">
                 <TextView
-                    android:padding="5dp"
+                    android:layout_margin="5dp"
+                    android:gravity="center"
                     android:textSize="5sp"
                     android:text="灯光"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
                 <Switch
                     android:id="@+id/led"
-                    android:layout_width="45dp"
-                    android:layout_height="25dp"
+                    android:layout_width="20dp"
+                    android:layout_height="10dp"
                     android:showText="false"
                     android:thumb="@drawable/switch_ios_thumb"
                     android:track="@drawable/switch_ios_track_selector"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
                     tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_margin="5dp"
+                    android:textSize="5sp"
+                    android:text="白平衡"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Switch
+                    android:id="@+id/awc"
+                    android:layout_width="20dp"
+                    android:layout_height="10dp"
+                    android:showText="false"
+                    android:thumb="@drawable/switch_ios_thumb"
+                    android:track="@drawable/switch_ios_track_selector"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_margin="5dp"
+                    android:textSize="5sp"
+                    android:text="AEC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Switch
+                    android:id="@+id/aec"
+                    android:layout_width="20dp"
+                    android:layout_height="10dp"
+                    android:showText="false"
+                    android:thumb="@drawable/switch_ios_thumb"
+                    android:track="@drawable/switch_ios_track_selector"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_margin="5dp"
+                    android:textSize="5sp"
+                    android:text="AGC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Switch
+                    android:id="@+id/agc"
+                    android:layout_width="20dp"
+                    android:layout_height="10dp"
+                    android:showText="false"
+                    android:thumb="@drawable/switch_ios_thumb"
+                    android:track="@drawable/switch_ios_track_selector"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_margin="5dp"
+                    android:textSize="5sp"
+                    android:text="GAMMA"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Switch
+                    android:id="@+id/gammar"
+                    android:layout_width="20dp"
+                    android:layout_height="10dp"
+                    android:showText="false"
+                    android:thumb="@drawable/switch_ios_thumb"
+                    android:track="@drawable/switch_ios_track_selector"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_margin="5dp"
+                    android:textSize="5sp"
+                    android:text="AWB GAIN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <Switch
+                    android:id="@+id/awb_gain"
+                    android:layout_width="20dp"
+                    android:layout_height="10dp"
+                    android:showText="false"
+                    android:thumb="@drawable/switch_ios_thumb"
+                    android:track="@drawable/switch_ios_track_selector"
+                    tools:ignore="UseSwitchCompatOrMaterialXml" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/wb_mode_total"
+                android:visibility="invisible"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:paddingTop="5dp"
+                    android:id="@+id/wb_mode_text"
+                    android:text="wbMode "
+                    android:textSize="5sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <SeekBar
+                    android:layout_marginStart="5dp"
+                    android:id="@+id/seekBar_wb_mode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="4"
+                    android:min="0"
+                    android:progress="1"
+                    />
+
             </LinearLayout>
 
         </LinearLayout>
