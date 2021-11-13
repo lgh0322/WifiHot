@@ -140,9 +140,9 @@ public class TcpCmd {
         cmd[8] = temp[2];
         cmd[9] = temp[3];
         if(x){
-            cmd[10]=(byte)0;
-        }else{
             cmd[10]=(byte)1;
+        }else{
+            cmd[10]=(byte)0;
         }
 
         cmd[10+len] = calCRC8(cmd);
