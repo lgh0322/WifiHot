@@ -77,34 +77,35 @@ class ServerFragment : Fragment() {
 
         binding = FragmentServerBinding.inflate(inflater, container, false)
 
-        isRecording.add(1)
+  /*      isRecording.add(1)*/
 
-        // 执行音频录制，回调PCM数据
+     /*   // 执行音频录制，回调PCM数据
         recorderThread.execute(AudioRecorder(isRecoding = isRecording, dataCallBack = { size, data ->
             Log.d(TAG, "audio pcm size : $size data :${data.size}: ")
             audioQueue.offer(data)
-        }))
+        }))*/
         // 执行音频编码，将PCM数据编码为AAC数据
-        recorderThread.execute(AudioEncoder(isRecording, createAMRFormat(),
+       /* recorderThread.execute(AudioEncoder(isRecording, createAMRFormat(),
                 audioQueue, { byteBuffer, bufferInfo ->
             val data = ByteArray(byteBuffer.remaining())
             byteBuffer.get(data, 0, data.size)
             val audioPacket = AudioPacket(data, data.size, bufferInfo.copy())
                 Log.e("fuckyou",byteArray2String(data))
+                Log.e("fuckyou22",data.size.toString())
                 aacDecoderUtil.decode(data,0,data.size,bufferInfo.presentationTimeUs)
 
                 framex++
                 if(framex>=100){
                     framex=0
                     val gg=(System.currentTimeMillis()-timex).toFloat()/1000f
-                    Log.e("gaga",(/*data.size**/(100f/(gg)).toInt()).toString())
+                    Log.e("gaga",(*//*data.size**//*(100f/(gg)).toInt()).toString())
                     timex=System.currentTimeMillis()
                 }
 
         },{
             // 得到输出的audio format
             audioFormats.add(it)
-        }) )
+        }) )*/
 
 
         return binding.root
