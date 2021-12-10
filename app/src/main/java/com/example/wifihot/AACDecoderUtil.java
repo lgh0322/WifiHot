@@ -48,7 +48,7 @@ public class AACDecoderUtil {
         mPlayer.init();
         try {
             //需要解码数据的类型
-            String mine = MediaFormat.MIMETYPE_AUDIO_AMR_WB;
+            String mine = MediaFormat.MIMETYPE_AUDIO_AMR_NB;
             //初始化解码器
             mDecoder = MediaCodec.createDecoderByType(mine);
             //MediaFormat用于描述音视频数据的相关参数
